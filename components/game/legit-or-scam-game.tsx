@@ -26,6 +26,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { SCAM_SCENARIOS, ScamScenario, ActionType } from '@/lib/game/scam-scenarios';
 import { playCue } from '@/lib/game/audio';
+import GameBackdrop3D from './game-backdrop-3d';
 
 const STORAGE_KEY = 'saferon-legit-or-scam-v1';
 
@@ -163,6 +164,14 @@ export default function LegitOrScamGame({ onBack }: { onBack: () => void }) {
       <main className="flex-1 max-w-6xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Column: Simulated Situation & Evidence Preview */}
         <section className="lg:col-span-7 flex flex-col gap-4">
+          {/* Interactive 3D Real-Time World Viewport */}
+          <GameBackdrop3D
+            environment={
+              scenario.category === 'portal' || scenario.category === 'gaming'
+                ? 'lab'
+                : 'market'
+            }
+          />
           {/* Situation Header Card */}
           <div className="p-5 rounded-2xl bg-[#152a27] border border-[#2b4c47] shadow-xl">
             <div className="flex items-center justify-between mb-3">

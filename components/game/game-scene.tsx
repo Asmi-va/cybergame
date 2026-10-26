@@ -5,11 +5,13 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrthographicCamera } from '@react-three/drei';
 import * as THREE from 'three';
 import { Campus, Character } from './campus';
+import { LabEnvironment, MarketplaceEnvironment, CyberHighwayEnvironment } from './environments';
 import { canWalk, stations, type Point, type StationId } from '@/lib/game/missions';
 import { PlayerBadge, StationMarker3D } from './world-labels';
 
 export type SceneProps = {
   active: boolean; target: Point | null; resetKey: number; station: StationId; verified: boolean;
+  environmentType?: 'campus' | 'lab' | 'market' | 'cyber';
   onPosition: (p: Point) => void; onTarget: (p: Point | null) => void; onStation: (id: StationId) => void; onReady: () => void;
 };
 function Player({active,target,onPosition,onTarget}: Pick<SceneProps,'active'|'target'|'onPosition'|'onTarget'>) {
@@ -72,8 +74,25 @@ export default function GameScene(props:SceneProps){
     <directionalLight position={[-12,24,10]} intensity={3} color="#fff2cf" castShadow shadow-mapSize={[2048,2048]} shadow-camera-left={-22} shadow-camera-right={22} shadow-camera-top={22} shadow-camera-bottom={-22} shadow-normalBias={.04} shadow-bias={-.0001} />
     <fog attach="fog" args={['#c5cdb5',55,100]} />
     <mesh rotation={[-Math.PI/2,0,0]} position={[0,-.83,0]} receiveShadow><planeGeometry args={[200,200]} /><meshStandardMaterial color="#a7b28e" /></mesh>
-    <Suspense fallback={null}><Campus /><Player key={props.resetKey} {...props} />
-      {(Object.keys(stations) as StationId[]).map(id=><Marker key={id} id={id} highlight={props.verified?id===props.station:id===props.station||id==='teacher'} onStation={props.onStation} />)}
+    <Suspense fallback={null}>
+      {props.environmentType === 'lab' ? (
+        <LabEnvironment />
+      ) : props.environmentType === 'market' ? (
+        <MarketplaceEnvironment />
+      ) : props.environmentType === 'cyber' ? (
+        <CyberHighwayEnvironment />
+      ) : (
+        <Campus />
+      )}
+      <Player key={props.resetKey} {...props} />
+      {(Object.keys(stations) as StationId[]).map((id) => (
+        <Marker
+          key={id}
+          id={id}
+          highlight={props.verified ? id === props.station : id === props.station || id === 'teacher'}
+          onStation={props.onStation}
+        />
+      ))}
       <Ready onReady={props.onReady} />
     </Suspense>
     <mesh

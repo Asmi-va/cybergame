@@ -9,6 +9,10 @@ import { missions, stations, readProgress, initialProgress, SAVE_KEY, type Point
 import { playCue } from '@/lib/game/audio';
 import { GameDialog, Investigation } from './investigation';
 import LegitOrScamGame from './legit-or-scam-game';
+import QrHuntGame from './qr-hunt-game';
+import CleanDeskGame from './clean-desk-game';
+import DataDashGame from './data-dash-game';
+import GameCatalogueView from './game-catalogue-view';
 import { GameId, GAMES } from '@/lib/game/games-config';
 
 const GameScene=dynamic(()=>import('./game-scene'),{ssr:false,loading:()=> <div className="scene-loading"><Shield size={32}/><span>Opening the school gates…</span></div>});
@@ -44,9 +48,29 @@ export default function GameShell(){
     return <LegitOrScamGame onBack={() => setCurrentGame('phishing')} />;
   }
 
+  if (currentGame === 'qr-hunt' as any) {
+    return <QrHuntGame onBack={() => setCurrentGame('phishing')} />;
+  }
+
+  if (currentGame === 'clean-desk' as any) {
+    return <CleanDeskGame onBack={() => setCurrentGame('phishing')} />;
+  }
+
+  if (currentGame === 'data-dash' as any) {
+    return <DataDashGame onBack={() => setCurrentGame('phishing')} />;
+  }
+
   return <main className="game-app" data-ready={ready&&hydrated} data-player-x={position.x.toFixed(2)} data-player-z={position.z.toFixed(2)}>
     <header className="topbar"><button className="brand" onClick={()=>setPanel('games')} aria-label="SafeRon game library"><span className="brand-icon"><ShieldCheck size={25}/></span><span>safe<span className="brand-accent">ron</span><small>SMALL HEROES. SAFE WORLDS.</small></span></button><div className="topbar-divider"/><nav aria-label="Game navigation"><button className="nav-game active" onClick={()=>setPanel(null)}><Search size={16}/>Phishing Detective<span className="live-dot"/></button><button className="nav-game" onClick={()=>setPanel('games')}><Gamepad2 size={17}/>All adventures</button></nav><div className="header-right"><span className="safe-label"><ShieldCheck size={14}/> A safe place to learn</span><button className="profile-button" onClick={()=>setPanel('journal')} aria-label="Open detective progress">R<span/></button></div></header>
-    <div className="world"><SceneBoundary><GameScene active={active} target={target} resetKey={resetKey} station={mission.station} verified={progress.verified} onPosition={setPosition} onTarget={setTarget} onStation={interact} onReady={onReady}/></SceneBoundary><div className="world-vignette"/></div>
+    <div className="world"><SceneBoundary><GameScene active={active} target={target} resetKey={resetKey} station={mission.station} verified={progress.verified} onPosition={setPosition} onTarget={setTarget} onStation={interact} onReady={onReady} environmentType={
+          {
+            phishing: "campus",
+            "legit-or-scam": "lab",
+            "qr-hunt": "market",
+            "clean-desk": "lab",
+            "data-dash": "cyber",
+          }[currentGame as any]
+        }/></SceneBoundary><div className="world-vignette"/></div>
     <div className="hud">
       <section className="mission-column"><div className="location-pill"><MapPin size={13}/><span>Navrang Public School</span><span className="location-dot"/>Lucknow, UP</div>
         <div className="mission-card glass"><div className="mission-topline"><span className="eyebrow"><span className="live-dot"/> YOUR ADVENTURE</span><span className="chapter-pill">CHAPTER 01</span></div><h1>Phishing<br/>Detective<span className="heading-period">.</span></h1><p className="mission-tagline">Big curiosity. Sharp eyes. Safer clicks.</p><div className="mission-divider"/><div className="mission-count"><span>THE TECH FEST MYSTERY</span><span>{progress.completed.length} / {missions.length}</span></div><div className="progress-track"><span style={{width:`${progress.completed.length/missions.length*100}%`}}/></div>
@@ -65,6 +89,15 @@ export default function GameShell(){
       {active&&<div className="touch-controls" aria-label="Movement controls">{[['ArrowUp',ArrowUp],['ArrowLeft',ArrowLeft],['ArrowDown',ArrowDown],['ArrowRight',ArrowRight]].map(([code,Icon])=>{const ControlIcon=Icon as typeof ArrowUp;return <button key={code as string} aria-label={`Move ${String(code).replace('Arrow','').toLowerCase()}`} onPointerDown={e=>{e.currentTarget.setPointerCapture(e.pointerId);touch(code as string,true);}} onPointerUp={()=>touch(code as string,false)} onPointerCancel={()=>touch(code as string,false)} onLostPointerCapture={()=>touch(code as string,false)}><ControlIcon size={20}/></button>;})}</div>}
       {toast&&<div className="game-toast" role="status"><Sparkles size={17}/>{toast}</div>}
     </div>
+    {panel === 'games' && (
+      <GameCatalogueView
+        onSelectGame={(id) => {
+          setCurrentGame(id as any);
+          setPanel(null);
+        }}
+        onClose={() => setPanel(null)}
+      />
+    )}
     <Investigation key={`${station}-${progress.mission}`} station={station} progress={progress} onClose={()=>setStation(null)} onClue={collect} onVerify={verify} onResolve={resolve}/>
     <GameDialog open={outcome!==null} onClose={()=>setOutcome(null)} title={outcome==='success'?'That’s thoughtful detective work!':'Every clue helps you learn'} eyebrow={outcome==='success'?'CASE SOLVED · +100 XP':'LET’S TAKE ANOTHER LOOK'}><div className="outcome-icon">{outcome==='success'?<ShieldCheck size={44}/>:<Search size={44}/>}</div><p className="dialog-copy">{outcome==='success'?mission.lesson:mission.safe?'This announcement was confirmed in person and asks for no secrets. Not every message is a trick. Look at the evidence and try again.':'In our pretend story, trusting this message would put private information at risk. Nothing was actually sent. Ms. Meera’s confirmation gives you the clue you need—try again!'}</p><Button size="lg" onClick={outcome==='success'?next:()=>{setOutcome(null);setStation(mission.station);}}>{outcome==='success'?(finished?'See your detective journal':'Next investigation'):'Try again'}<ArrowRight data-icon="inline-end"/></Button></GameDialog>
     <GameDialog open={panel==='pause'} onClose={()=>setPanel(null)} title="Take a little breather" eyebrow="GAME PAUSED"><p className="dialog-copy">The courtyard can wait. Your clues are safe.</p><div className="settings-list"><label><span><Volume2 size={18}/>Sound effects</span><input type="checkbox" checked={sound} onChange={e=>setSound(e.target.checked)}/></label><label><span><Compass size={18}/>Little detective hints <small>Ages 4–6 · with an adult</small></span><input type="checkbox" checked={guided} onChange={e=>setGuided(e.target.checked)}/></label></div><div className="dialog-actions"><Button size="lg" onClick={()=>setPanel(null)}><Play data-icon="inline-start"/>Back to the adventure</Button><Button variant="outline" size="lg" onClick={restart}><RotateCcw data-icon="inline-start"/>Restart story</Button></div><p className="small-note">Restart clears this game&apos;s progress on this device.</p></GameDialog>

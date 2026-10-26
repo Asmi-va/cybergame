@@ -48,6 +48,57 @@
   - **Reject & Delete** (refuse unneeded permissions or secret PIN requests)
   - **Report Scam** (alert authorities to dangerous links or identity spoofing)
 
+---
+
+## CyberPlay-Quality Adventures Catalogue & New Playable Games
+
+### 1. Unified Game Catalogue (`GameCatalogueView`)
+- Fully integrated into the **"All adventures"** navigation button.
+- Categorized by all 5 authentic play styles from the CyberPlay reference guide:
+  - **Investigate**
+  - **Walk and Fix**
+  - **Role-Play**
+  - **Strategy & Manage**
+  - **Arcade & Puzzle**
+- Real-time search, difficulty tags (`Beginner`, `Intermediate`, `Advanced`), play duration badges, and expandable detail modal with mechanics breakdown.
+
+### 2. QR Hunt: Campus Code Investigator (`QrHuntGame`)
+- Direct implementation of the CyberPlay **QR Hunt** gameplay loop:
+  - Inspection of decoded URL, registered domain, HTTPS encryption status, and physical tampering (peeling sticker overlays).
+  - 3 safety checks to run per station before choosing: **Safe to Open**, **Ignore & Avoid**, or **Report QR Trap**.
+  - Authentic Indian locations: Canteen billing counter, school bus stop, library desk, and science exhibition hall.
+
+### 3. Clean Desk Challenge (`CleanDeskGame`)
+- Direct implementation of the CyberPlay **Clean Desk Challenge** walk-and-fix loop:
+  - Audit of computer lab workstations and teacher desks at end-of-day.
+  - Document & asset classifications: `Public`, `Internal`, `Confidential`, `Restricted`, and `Decoy`.
+  - Actions: **Lock Screen**, **Secure Shred**, **Lock in Drawer**, and **Leave Untouched**.
+  - Penalty for disturbing harmless decoys (such as mugs and desk plants) to train restraint and avoid over-fixing.
+  - Scoring from S-grade to C-grade.
+
+### 4. Data Dash: Cyber Runner (`DataDashGame`)
+- Direct implementation of the CyberPlay **Data Dash** arcade runner:
+  - 3-lane navigation with real-time obstacle avoidance.
+  - Deliver clean data capsules, steer into official HTTPS portals, and dodge malware traps (`.exe` payloads and spoofed gates).
+  - Touch buttons ("Steer Left", "Steer Right") and keyboard arrow/A-D support.
+  - Life meter, scoring multipliers, and session debriefs.
+
+### 5. Mobile & Tablet Responsiveness
+- Dedicated touch controls on mobile devices (D-pad for 3D exploration and swipe/tap buttons for arcade).
+- Responsive viewports (`100dvh`), flexible mission cards, responsive typography, and adaptive layouts for all screen sizes.
+
+---
+
+## 3D Real-Time Environments Across All Games (`environments.tsx` & `game-backdrop-3d.tsx`)
+All games in the platform now feature real-time 3D rendered worlds matching *Phishing Detective*:
+- **Navrang School Campus** (*Phishing Detective 3D*): Courtyard, dual school wings, noticeboard station, tech fest flags, trees, and benches.
+- **Computer Lab & Server Facility** (*Clean Desk Challenge* & *Portal Security Scenarios*): Dual-monitor student desks, glowing server racks with active LEDs, teacher master workstation, and network whiteboards.
+- **Bazaar & Courtyard Marketplace** (*Legit or Scam?* & *QR Hunt*): Street stalls, book depot with canopies, canteen counters, and trees.
+- **Cyber Highway Grid** (*Data Dash*): 3-lane neon track with floating cyber pillars and data packet targets.
+- Embedded live across all game interfaces via GPU-accelerated Three.js viewports with floating detective characters.
+
+
+
 ### 10 Diverse Scenarios Included
 1. **The "Cashback Reward" Payment Request**: UPI collect request of ₹500 pretending to be a reward credit.
 2. **Pasted QR Code at Bus Stop Book Stall**: Sticker overlay placed over vendor's genuine QR board.
