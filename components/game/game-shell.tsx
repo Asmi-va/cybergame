@@ -16,11 +16,12 @@ import GameCatalogueView from './game-catalogue-view';
 import { GameId, GAMES } from '@/lib/game/games-config';
 
 const GameScene=dynamic(()=>import('./game-scene'),{ssr:false,loading:()=> <div className="scene-loading"><Shield size={32}/><span>Opening the school gates…</span></div>});
+import type { SceneProps } from './game-scene';
 class SceneBoundary extends Component<{children:ReactNode},{error:boolean}>{state={error:false};static getDerivedStateFromError(){return {error:true};}render(){return this.state.error?<div className="scene-loading"><Shield/><h2>The campus needs WebGL</h2><p>Try a browser with hardware acceleration enabled.</p><button onClick={()=>window.location.reload()}>Reload campus</button></div>:this.props.children;}}
 
 type Panel = 'pause'|'journal'|'help'|'games'|null;
-export default function GameShell(){
-  const [currentGame, setCurrentGame] = useState<GameId>('phishing');
+export default function GameShell({ initialGame = 'phishing', onBackToHome }: { initialGame?: string; onBackToHome?: () => void } = {}){
+  const [currentGame, setCurrentGame] = useState<GameId>((initialGame as GameId) || 'phishing');
   const [progress,setProgress]=useState<Progress>(initialProgress);const [hydrated,setHydrated]=useState(false);const [ready,setReady]=useState(false);const [started,setStarted]=useState(false);const [panel,setPanel]=useState<Panel>(null);const [station,setStation]=useState<StationId|null>(null);const [position,setPosition]=useState<Point>({x:0,z:5});const [target,setTarget]=useState<Point|null>(null);const [resetKey,setResetKey]=useState(0);const [sound,setSound]=useState(true);const [guided,setGuided]=useState(true);const [outcome,setOutcome]=useState<'success'|'retry'|null>(null);const [toast,setToast]=useState('');const [storageError,setStorageError]=useState(false);const [mapOpen,setMapOpen]=useState(true);const toastTimer=useRef<ReturnType<typeof setTimeout>|null>(null);
   const mission=missions[progress.mission];const finished=progress.completed.length===missions.length;
   const active=started&&!panel&&!station&&!outcome;
@@ -45,32 +46,24 @@ export default function GameShell(){
   const touch=(code:string,down:boolean)=>window.dispatchEvent(new KeyboardEvent(down?'keydown':'keyup',{code,bubbles:true}));
 
   if (currentGame === 'legit-or-scam') {
-    return <LegitOrScamGame onBack={() => setCurrentGame('phishing')} />;
+    return <LegitOrScamGame onBack={() => onBackToHome ? onBackToHome() : setCurrentGame('phishing')} />;
   }
 
   if (currentGame === 'qr-hunt' as any) {
-    return <QrHuntGame onBack={() => setCurrentGame('phishing')} />;
+    return <QrHuntGame onBack={() => onBackToHome ? onBackToHome() : setCurrentGame('phishing')} />;
   }
 
   if (currentGame === 'clean-desk' as any) {
-    return <CleanDeskGame onBack={() => setCurrentGame('phishing')} />;
+    return <CleanDeskGame onBack={() => onBackToHome ? onBackToHome() : setCurrentGame('phishing')} />;
   }
 
   if (currentGame === 'data-dash' as any) {
-    return <DataDashGame onBack={() => setCurrentGame('phishing')} />;
+    return <DataDashGame onBack={() => onBackToHome ? onBackToHome() : setCurrentGame('phishing')} />;
   }
 
   return <main className="game-app" data-ready={ready&&hydrated} data-player-x={position.x.toFixed(2)} data-player-z={position.z.toFixed(2)}>
-    <header className="topbar"><button className="brand" onClick={()=>setPanel('games')} aria-label="SafeRon game library"><span className="brand-icon"><ShieldCheck size={25}/></span><span>safe<span className="brand-accent">ron</span><small>SMALL HEROES. SAFE WORLDS.</small></span></button><div className="topbar-divider"/><nav aria-label="Game navigation"><button className="nav-game active" onClick={()=>setPanel(null)}><Search size={16}/>Phishing Detective<span className="live-dot"/></button><button className="nav-game" onClick={()=>setPanel('games')}><Gamepad2 size={17}/>All adventures</button></nav><div className="header-right"><span className="safe-label"><ShieldCheck size={14}/> A safe place to learn</span><button className="profile-button" onClick={()=>setPanel('journal')} aria-label="Open detective progress">R<span/></button></div></header>
-    <div className="world"><SceneBoundary><GameScene active={active} target={target} resetKey={resetKey} station={mission.station} verified={progress.verified} onPosition={setPosition} onTarget={setTarget} onStation={interact} onReady={onReady} environmentType={
-          {
-            phishing: "campus",
-            "legit-or-scam": "lab",
-            "qr-hunt": "market",
-            "clean-desk": "lab",
-            "data-dash": "cyber",
-          }[currentGame as any]
-        }/></SceneBoundary><div className="world-vignette"/></div>
+    <header className="topbar"><button className="brand" onClick={()=>setPanel('games')} aria-label="SafeRon game library"><span className="brand-icon"><ShieldCheck size={25}/></span><span>safe<span className="brand-accent">ron</span><small>SMALL HEROES. SAFE WORLDS.</small></span></button><div className="topbar-divider"/><nav aria-label="Game navigation"><button className="nav-game active" onClick={()=>setPanel(null)}><Search size={16}/>Phishing Detective<span className="live-dot"/></button><button className="nav-game" onClick={()=>setPanel('games')}><Gamepad2 size={17}/>All adventures</button></nav><div className="header-right"><span className="safe-label"><ShieldCheck size={14}/> A safe place to learn</span>{onBackToHome && <button className="nav-game" onClick={onBackToHome} style={{marginRight:8}}><Home size={15}/>Home</button>}<button className="profile-button" onClick={()=>setPanel('journal')} aria-label="Open detective progress">R<span/></button></div></header>
+    <div className="world"><SceneBoundary><GameScene active={active} target={target} resetKey={resetKey} station={mission.station} verified={progress.verified} onPosition={setPosition} onTarget={setTarget} onStation={interact} onReady={onReady} environmentType={(({'phishing':'campus','legit-or-scam':'lab','qr-hunt':'market','clean-desk':'lab','data-dash':'cyber'} as Record<string,string>)[currentGame]) as SceneProps['environmentType']}/></SceneBoundary><div className="world-vignette"/></div>
     <div className="hud">
       <section className="mission-column"><div className="location-pill"><MapPin size={13}/><span>Navrang Public School</span><span className="location-dot"/>Lucknow, UP</div>
         <div className="mission-card glass"><div className="mission-topline"><span className="eyebrow"><span className="live-dot"/> YOUR ADVENTURE</span><span className="chapter-pill">CHAPTER 01</span></div><h1>Phishing<br/>Detective<span className="heading-period">.</span></h1><p className="mission-tagline">Big curiosity. Sharp eyes. Safer clicks.</p><div className="mission-divider"/><div className="mission-count"><span>THE TECH FEST MYSTERY</span><span>{progress.completed.length} / {missions.length}</span></div><div className="progress-track"><span style={{width:`${progress.completed.length/missions.length*100}%`}}/></div>
