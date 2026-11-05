@@ -1,0 +1,29 @@
+{
+  "duration": 434.59,
+  "language": "en",
+  "words": 1157,
+  "checkpoints": [
+    {
+      "id": "requests",
+      "at": 72.55
+    },
+    {
+      "id": "urgency",
+      "at": 141.28
+    },
+    {
+      "id": "sender",
+      "at": 211.73
+    },
+    {
+      "id": "channel",
+      "at": 285.67
+    },
+    {
+      "id": "recovery",
+      "at": 361.27
+    }
+  ],
+  "video": "/courses/email-phishing/lesson.mp4",
+  "subtitles": "/courses/email-phishing/lesson.en.vtt"
+}

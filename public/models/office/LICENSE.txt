@@ -1,0 +1,11 @@
+Models in this folder are from Low Poly Office & Tech Pack by reodesuxz.
+https://reodesuxz.itch.io/low-poly-office-tech-pack
+
+They may be used and modified in this SafeRon game, including commercial use.
+Attribution is not required. Credit appreciated: "Low Poly Office & Tech Pack by reodesuxz".
+
+They may not be resold, sublicensed, or redistributed as a standalone asset pack.
+They may not be used to train AI models.
+
+The floor texture laminate.jpg is Poly Haven "Laminate Floor 02" (CC0).
+https://polyhaven.com/a/laminate_floor_02

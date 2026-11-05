@@ -1,0 +1,28 @@
+Nayapur environment models
+
+Primary pack: Indian Bazaar Street and Temple
+Source: https://3dassets.dev/packs/indian-bazaar-street-and-temple
+Also listed via gameassetdeals / 3DAssets.dev discovery links.
+Licence: CC0 1.0 Universal (https://creativecommons.org/publicdomain/zero/1.0/)
+Attribution not required. Free for personal and commercial use.
+Format: GLB (web-optimised; WebP textures; mesh quantization)
+No people or animals in this pack.
+
+Included locally under public/models/nayapur/:
+- bazaar/starter-street.glb (composed 32 m street starter scene)
+- houses/* (balcony, corner block, plaster wall, gate, stairs, rooftop tank)
+- shops/* (shopfronts, stalls, awning, colonnade)
+- streets/* (road, pavement, poles, cables)
+- vehicles/* (auto-rickshaw, scooter, motorcycle, bicycle, handcart)
+
+Characters (Grab3D, CC0 1.0 — see characters/LICENSE-grab3d.txt):
+- characters/uncle-elderly-man-light.glb — https://grab3d.com/models/characters/elderly-man/
+- characters/player-casual-man-light.glb — https://grab3d.com/models/characters/man/
+- characters/player-casual-man-rigged.glb — walk/run clips (Grab3D man-rigged)
+- characters/shopkeeper-businessman-light.glb — https://grab3d.com/models/characters/businessman/
+
+Paid marketplaces referenced for future expansion (not downloaded here):
+- TurboSquid Indian houses — purchase required per listing
+- Fab auto-rickshaw / Indian Street Environment — purchase required
+- CGTrader Indian streets — purchase required
+- BlenderArtists kirana threads — verify per-post licence before use

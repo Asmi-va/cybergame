@@ -1,5 +1,39 @@
 # SafeRon Engineering & Progress Log
 
+## CyberPlay-style platform (October 2026)
+
+SafeRon now has a separate learning platform at the site root. The older Navrang campus adventures remain at `/campus`.
+
+Sections: Home, Courses, Games, Achievements, Learn, Profile. Tagline: Play · Learn · Stay Safe.
+
+Courses and games keep separate progress in `localStorage` (`saferon-platform-v1`).
+
+### Course
+- Modern Email Phishing: original 7:27 English narration (`public/courses/email-phishing/lesson.mp4`), subtitles, seven original guides, five checkpoints, resume, first-attempt score, up to 160 XP.
+- Certificate is not included. The language list can take more narration tracks later. Hindi, French, German, and Spanish are visible and not yet recorded.
+
+### Games (each has its own interface)
+1. Find the Fake Login — workstation and browser, 20 scenarios, 4 chapters.
+2. Phishing Detective 3D — case brief, tutorial, corporate desktop (mail, chat, calendar, browser, files, notes, board), document permissions, first-person office, case report. Operation Still Ledger, ₹39,85,000.
+3. QR Hunt — six rooms, twelve fictional codes, scanner, open / ignore / report.
+4. The Social Engineer — 09:00 to 16:45, eleven requests, proportionate decisions.
+5. INSIDER — offline practice is labeled offline. Live rooms use `pnpm insider-server` (`ws://127.0.0.1:8787`) and do not start a match with one player.
+6. Ransomware Reaction — simulated note and file names only. No encryption or changes to the real computer.
+
+### Checked in the browser
+- Course played through all five checkpoints to the completion card (first attempt saved).
+- Find the Fake Login finished 20/20.
+- Phishing Detective filed the hold-and-report conclusion with the evidence set.
+- QR Hunt finished 12/12 across 6 rooms.
+- The Social Engineer finished 22/22.
+- INSIDER practice finished 3/3, and the realtime room waited for a second player.
+- Ransomware Reaction finished 4/4.
+- Profile showed 1228 XP after that run.
+
+---
+
+# Earlier campus log
+
 ## Architecture Overview
 - **Framework**: Next.js 16 (App Router) + React 19 + TypeScript
 - **3D Engine**: Three.js + React Three Fiber (`@react-three/fiber`) + `@react-three/drei`
