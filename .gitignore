@@ -15,3 +15,4 @@ node_modules
 .next/
 scripts/.course-build/
 .DS_Store
+.vercel
