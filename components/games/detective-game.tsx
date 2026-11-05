@@ -89,35 +89,37 @@ export default function DetectiveGame() {
   const objectiveItems = OBJECTIVES.map((item) => ({ label: item.label, done: item.test(bag) }));
 
   return (
-    <div className="min-h-screen bg-[#070b10] text-[#e8eef7]">
+    <div className="min-h-[100dvh] bg-[#070b10] text-[#e8eef7]">
       {phase === 'brief' && (
-        <div className="mx-auto max-w-3xl px-6 py-16">
-          <p className="text-xs tracking-[0.18em] text-[#93c5fd]">OPERATION STILL LEDGER</p>
-          <h1 className="mt-3 text-4xl font-semibold">A supplier payment is frozen</h1>
-          <p className="mt-4 leading-relaxed text-[#b7c3d6]">Meridian Forge Pvt. Ltd. is holding ₹39,85,000 for Aarav Textiles, invoice HF-2041. A new message says the bank account changed today and asks finance to pay before the evening run. You are the investigator on the case.</p>
+        <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-16">
+          <p className="text-xs tracking-[0.18em] text-[#93c5fd]">OPERATION STILL LEDGER · SIM</p>
+          <h1 className="mt-3 text-3xl font-semibold sm:text-4xl">A supplier payment is frozen</h1>
+          <p className="mt-4 text-sm leading-relaxed text-[#b7c3d6] sm:text-base">Meridian Forge Pvt. Ltd. is holding ₹39,85,000 for Aarav Textiles, invoice HF-2041. A new message says the bank account changed today and asks finance to pay before the evening run. You are the investigator on the case.</p>
           <ul className="mt-6 space-y-2 text-sm text-[#d5deea]">
             <li>Background: Aarav Textiles is a real supplier on the vendor master. The relationship is not new.</li>
             <li>Incident: the new mail also asks for edit rights on the bank file.</li>
             <li>Objective: decide whether the payment should move, and file a report that matches the evidence.</li>
+            <li>Phone: stick to walk, drag right to look, tap Use near clues or the desk.</li>
           </ul>
-          <button onClick={() => setPhase('tutorial')} className="mt-8 rounded-full bg-[#2563eb] px-5 py-3 text-sm font-semibold">Start investigation</button>
+          <button type="button" onClick={() => setPhase('tutorial')} className="mt-8 w-full rounded-full bg-[#2563eb] px-5 py-3 text-sm font-semibold sm:w-auto">Start investigation</button>
         </div>
       )}
       {phase === 'tutorial' && (
-        <div className="mx-auto max-w-2xl px-6 py-16">
+        <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6 sm:py-16">
           <p className="text-xs tracking-[0.16em] text-[#f0c575]">EVIDENCE TUTORIAL · {step + 1} / {TUTORIAL.length}</p>
-          <h1 className="mt-3 text-3xl font-semibold">How this desk works</h1>
-          <p className="mt-4 text-lg leading-relaxed text-[#d5deea]">{TUTORIAL[step]}</p>
+          <h1 className="mt-3 text-2xl font-semibold sm:text-3xl">How this desk works</h1>
+          <p className="mt-4 text-base leading-relaxed text-[#d5deea] sm:text-lg">{TUTORIAL[step]}</p>
           <button
+            type="button"
             onClick={() => (step < TUTORIAL.length - 1 ? setStep(step + 1) : setPhase('world'))}
-            className="mt-8 rounded-full bg-white px-5 py-3 text-sm font-semibold text-black"
+            className="mt-8 w-full rounded-full bg-white px-5 py-3 text-sm font-semibold text-black sm:w-auto"
           >
             {step < TUTORIAL.length - 1 ? 'Next' : 'Enter the building'}
           </button>
         </div>
       )}
       {phase === 'world' && (
-        <div className="relative h-screen">
+        <div className="relative h-[calc(100dvh-3.25rem)] sm:h-[calc(100vh-3.5rem)]">
           <OfficeScene
             seated={seated}
             collected={flags}

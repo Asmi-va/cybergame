@@ -7,9 +7,9 @@ import { usePlatform } from '@/lib/platform/store';
 import { GAMES } from '@/lib/platform/catalog';
 
 const OPTIONS: { id: Verdict; label: string; hint: string }[] = [
-  { id: 'legitimate', label: 'Legitimate', hint: 'The host is the one this brand actually uses.' },
-  { id: 'suspicious', label: 'Suspicious', hint: 'Do not type a password until someone confirms the host.' },
-  { id: 'malicious', label: 'Malicious', hint: 'This page is built to collect a secret.' },
+  { id: 'legitimate', label: 'Legitimate', hint: 'Host matches this brand.' },
+  { id: 'suspicious', label: 'Suspicious', hint: 'Do not type a password yet.' },
+  { id: 'malicious', label: 'Malicious', hint: 'Built to steal a secret.' },
 ];
 
 export default function FakeLoginGame() {
@@ -34,18 +34,16 @@ export default function FakeLoginGame() {
   }, []);
 
   function classify(verdict: Verdict) {
-    const correct = verdict === scenario.verdict;
     setPicked(verdict);
-    setAnswers((current) => [...current, { id: scenario.id, correct }]);
+    setAnswers((current) => [...current, { id: scenario.id, correct: verdict === scenario.verdict }]);
     setStage('result');
   }
 
   function next() {
     const upcoming = SCENARIOS[index + 1];
     if (!upcoming) {
-      const correct = answers.filter((answer) => answer.correct).length;
-      const score = correct;
-      const xp = Math.round((score / SCENARIOS.length) * (GAMES[0].xp));
+      const score = answers.filter((answer) => answer.correct).length;
+      const xp = Math.round((score / SCENARIOS.length) * GAMES[0].xp);
       const seconds = Math.round((Date.now() - started) / 1000);
       completeGame('find-the-fake-login', score, SCENARIOS.length, xp, `${score}/20 correct · ${formatClock(seconds)}`);
       setStage('done');
@@ -68,116 +66,150 @@ export default function FakeLoginGame() {
   const seconds = Math.round((now - started) / 1000);
 
   return (
-    <div className="min-h-screen bg-[#1a120c] text-[#f4efe6]">
-      <div className="mx-auto max-w-6xl px-4 py-4">
-        <div className="mb-3 flex items-center justify-between text-sm text-[#d9cbb8]">
-          <Link href="/games" className="text-[#f0c575]">Leave the workstation</Link>
-          <span>Chapter {scenario.chapter} of 4 · Scenario {index + 1} of 20</span>
-          <span>{correct} correct · {formatClock(seconds)}</span>
+    <div className="min-h-[100dvh] bg-[#090909] px-3 py-3 text-[#f4efe6] sm:px-4 sm:py-4">
+      <div className="mx-auto flex max-w-lg flex-col gap-3 sm:max-w-6xl">
+        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[#d9cbb8] sm:text-sm">
+          <Link href="/academy?tab=practice" className="text-[#FF9933]">Leave sim</Link>
+          <span>Ch {scenario.chapter}/4 · {index + 1}/20</span>
+          <span>{correct} ok · {formatClock(seconds)}</span>
         </div>
-        <div className="overflow-hidden rounded-2xl border border-[#3a2c22] bg-[#241910] shadow-2xl">
-          <div className="flex items-center gap-2 border-b border-[#3a2c22] px-4 py-2 text-xs text-[#d9cbb8]">
+
+        <div className="mx-auto w-full overflow-hidden rounded-[1.75rem] border border-[#3a2c22] bg-[#14100c] shadow-2xl sm:max-w-none sm:rounded-2xl">
+          <div className="flex items-center justify-center bg-[#1c1612] px-4 py-2 sm:hidden">
+            <span className="h-1.5 w-16 rounded-full bg-white/15" />
+          </div>
+          <div className="hidden items-center gap-2 border-b border-[#3a2c22] px-4 py-2 text-xs text-[#d9cbb8] sm:flex">
             <span className="h-2.5 w-2.5 rounded-full bg-[#c46b4a]" />
             <span className="h-2.5 w-2.5 rounded-full bg-[#e0b15a]" />
             <span className="h-2.5 w-2.5 rounded-full bg-[#7d9a6a]" />
             <span className="ml-3">Meridian Forge · investigation workstation</span>
           </div>
+          <p className="border-b border-[#3a2c22] px-4 py-2 text-[10px] tracking-[0.16em] text-[#FF9933] sm:hidden">
+            PHONE BROWSER · SIM ONLY
+          </p>
+
           {stage === 'brief' && (
-            <div className="grid gap-6 p-8 md:grid-cols-[1.1fr_0.9fr]">
+            <div className="space-y-5 p-5 sm:grid sm:gap-6 sm:p-8 md:grid-cols-[1.1fr_0.9fr] sm:space-y-0">
               <div>
-                <p className="text-xs tracking-[0.16em] text-[#f0c575]">{chapter.title.toUpperCase()}</p>
-                <h1 className="mt-2 text-3xl font-semibold">{scenario.title}</h1>
-                <p className="mt-4 text-[#e7dccb]">{scenario.briefing}</p>
+                <p className="text-xs tracking-[0.16em] text-[#FF9933]">{chapter.title.toUpperCase()}</p>
+                <h1 className="mt-2 text-2xl font-semibold sm:text-3xl">{scenario.title}</h1>
+                <p className="mt-4 text-sm leading-relaxed text-[#e7dccb] sm:text-base">{scenario.briefing}</p>
               </div>
-              <button onClick={() => setStage('browser')} className="rounded-2xl bg-[#f0c575] px-4 py-6 text-left text-[#2a2118]">
-                <span className="text-xs tracking-[0.14em]">BROWSER</span>
-                <strong className="mt-2 block text-xl">Open the sign-in page</strong>
-                <span className="mt-2 block text-sm">Nothing you type here leaves this simulation. There is no real password field behind the page.</span>
+              <button
+                type="button"
+                onClick={() => setStage('browser')}
+                className="w-full rounded-2xl bg-[#FF9933] px-4 py-5 text-left text-[#0b0b0b]"
+              >
+                <span className="text-xs tracking-[0.14em]">OPEN PAGE</span>
+                <strong className="mt-2 block text-lg sm:text-xl">View sign-in screen</strong>
+                <span className="mt-2 block text-sm">No real password is accepted. This is a practice page.</span>
               </button>
             </div>
           )}
+
           {stage === 'chapter' && (
-            <div className="p-8">
-              <p className="text-xs tracking-[0.16em] text-[#f0c575]">CHAPTER {SCENARIOS[index].chapter}</p>
-              <h1 className="mt-2 text-3xl font-semibold">{CHAPTERS[SCENARIOS[index].chapter - 1].title}</h1>
-              <p className="mt-3 max-w-xl text-[#e7dccb]">{CHAPTERS[SCENARIOS[index].chapter - 1].summary}</p>
-              <button onClick={() => setStage('brief')} className="mt-6 rounded-full bg-[#f0c575] px-5 py-3 font-semibold text-[#2a2118]">Continue</button>
+            <div className="p-5 sm:p-8">
+              <p className="text-xs tracking-[0.16em] text-[#FF9933]">CHAPTER {SCENARIOS[index].chapter}</p>
+              <h1 className="mt-2 text-2xl font-semibold sm:text-3xl">{CHAPTERS[SCENARIOS[index].chapter - 1].title}</h1>
+              <p className="mt-3 text-sm text-[#e7dccb] sm:text-base">{CHAPTERS[SCENARIOS[index].chapter - 1].summary}</p>
+              <button type="button" onClick={() => setStage('brief')} className="mt-6 w-full rounded-full bg-[#FF9933] px-5 py-3 font-semibold text-[#0b0b0b] sm:w-auto">
+                Continue
+              </button>
             </div>
           )}
+
           {(stage === 'browser' || stage === 'result') && (
-            <div className="grid lg:grid-cols-[220px_1fr]">
-              <aside className="border-r border-[#3a2c22] p-4 text-sm">
-                <p className="text-xs tracking-[0.14em] text-[#f0c575]">CHAPTERS</p>
+            <div className="p-3 sm:grid sm:grid-cols-[200px_1fr] sm:p-0">
+              <aside className="hidden border-r border-[#3a2c22] p-4 text-sm sm:block">
+                <p className="text-xs tracking-[0.14em] text-[#FF9933]">CHAPTERS</p>
                 {CHAPTERS.map((item) => (
-                  <p key={item.id} className={`mt-3 ${item.id === scenario.chapter ? 'text-white' : 'text-[#a89886]'}`}>{item.id}. {item.title}</p>
+                  <p key={item.id} className={`mt-3 ${item.id === scenario.chapter ? 'text-white' : 'text-[#a89886]'}`}>
+                    {item.id}. {item.title}
+                  </p>
                 ))}
-                <p className="mt-6 text-xs text-[#a89886]">Correct {correct} · Missed {answers.length - correct}</p>
               </aside>
-              <div className="p-4">
-                <div className="overflow-hidden rounded-xl border border-[#d7d1c8] bg-[#f7f4ee] text-[#1d1a17]">
+              <div className="space-y-3 sm:p-4">
+                <div className="overflow-hidden rounded-2xl border border-[#d7d1c8] bg-[#f7f4ee] text-[#1d1a17]">
                   <div className="flex items-center gap-2 bg-[#ece7df] px-3 py-2">
-                    <div className={`min-w-0 flex-1 truncate rounded-full px-3 py-1 text-sm ${scenario.secure ? 'bg-white' : 'bg-[#f8d7d3]'}`}>
-                      <span className="mr-2 text-xs">{scenario.secure ? 'HTTPS' : 'NOT SECURE'}</span>
+                    <div className={`min-w-0 flex-1 truncate rounded-full px-3 py-1.5 text-xs sm:text-sm ${scenario.secure ? 'bg-white' : 'bg-[#f8d7d3]'}`}>
+                      <span className="mr-2 text-[10px] font-semibold">{scenario.secure ? 'HTTPS' : 'NOT SECURE'}</span>
                       {scenario.url}
                     </div>
-                    <button onClick={() => setInspected(true)} className="rounded-full bg-[#1d1a17] px-3 py-1 text-xs text-white">Page details</button>
+                    <button type="button" onClick={() => setInspected(true)} className="shrink-0 rounded-full bg-[#1d1a17] px-3 py-1.5 text-[11px] text-white">
+                      Details
+                    </button>
                   </div>
-                  <div className={`grid gap-6 p-6 ${scenario.layout === 'split' ? 'md:grid-cols-2' : ''}`}>
+                  <div className="space-y-4 p-4">
                     <div>
-                      <p className="text-xs tracking-[0.14em] text-[#6b6258]">{scenario.brand.toUpperCase()}</p>
-                      <h2 className="mt-2 text-2xl font-semibold">{scenario.headline}</h2>
-                      {scenario.layout === 'bank' && <p className="mt-3 text-sm text-[#6b6258]">Staff services · simulated page</p>}
+                      <p className="text-[10px] tracking-[0.14em] text-[#6b6258]">{scenario.brand.toUpperCase()}</p>
+                      <h2 className="mt-1 text-xl font-semibold">{scenario.headline}</h2>
                     </div>
-                    <form className="rounded-xl border border-[#e4ddd2] bg-white p-4" onSubmit={(event) => event.preventDefault()}>
+                    <form className="rounded-xl border border-[#e4ddd2] bg-white p-3" onSubmit={(event) => event.preventDefault()}>
                       {scenario.fields.map((field) => (
                         <label key={field} className="mb-3 block text-sm">
                           {field}
-                          <input disabled value="" placeholder="Disabled in this simulation" className="mt-1 w-full rounded-lg border border-[#e4ddd2] bg-[#fafafa] px-3 py-2" />
+                          <input disabled value="" placeholder="Disabled in this simulation" className="mt-1 w-full rounded-lg border border-[#e4ddd2] bg-[#fafafa] px-3 py-2.5" />
                         </label>
                       ))}
-                      <p className="text-xs text-[#6b6258]">This control does not accept or store a password.</p>
+                      <p className="text-[11px] text-[#6b6258]">No password is stored or sent.</p>
                     </form>
+                    {inspected ? (
+                      <ul className="space-y-1 border-t border-[#e4ddd2] pt-3 text-sm">
+                        {scenario.details.map((detail) => (
+                          <li key={detail}>· {detail}</li>
+                        ))}
+                      </ul>
+                    ) : null}
                   </div>
-                  {inspected && (
-                    <ul className="space-y-1 border-t border-[#e4ddd2] px-6 py-4 text-sm">
-                      {scenario.details.map((detail) => <li key={detail}>· {detail}</li>)}
-                    </ul>
-                  )}
                 </div>
+
                 {stage === 'browser' && (
-                  <div className="mt-4 grid gap-2 md:grid-cols-3">
+                  <div className="grid gap-2">
                     {OPTIONS.map((option) => (
-                      <button key={option.id} onClick={() => classify(option.id)} className="rounded-xl border border-[#6b5344] bg-[#2c211b] px-3 py-3 text-left">
+                      <button
+                        key={option.id}
+                        type="button"
+                        onClick={() => classify(option.id)}
+                        className="rounded-xl border border-[#6b5344] bg-[#2c211b] px-4 py-3 text-left"
+                      >
                         <strong className="block">{option.label}</strong>
                         <span className="text-xs text-[#d9cbb8]">{option.hint}</span>
                       </button>
                     ))}
                   </div>
                 )}
+
                 {stage === 'result' && picked && (
-                  <div className="mt-4 rounded-xl bg-[#2c211b] p-4">
-                    <p className="text-sm uppercase tracking-[0.14em] text-[#f0c575]">{picked === scenario.verdict ? 'That classification holds' : `The page is ${scenario.verdict}`}</p>
-                    <p className="mt-2 text-sm leading-relaxed text-[#f4efe6]">{scenario.explanation}</p>
-                    <button onClick={next} className="mt-4 rounded-full bg-[#f0c575] px-4 py-2 text-sm font-semibold text-[#2a2118]">Continue</button>
+                  <div className="rounded-xl bg-[#2c211b] p-4">
+                    <p className="text-xs uppercase tracking-[0.14em] text-[#FF9933]">
+                      {picked === scenario.verdict ? 'That classification holds' : `The page is ${scenario.verdict}`}
+                    </p>
+                    <p className="mt-2 text-sm leading-relaxed">{scenario.explanation}</p>
+                    <button type="button" onClick={next} className="mt-4 w-full rounded-full bg-[#FF9933] px-4 py-3 text-sm font-semibold text-[#0b0b0b] sm:w-auto">
+                      Continue
+                    </button>
                   </div>
                 )}
               </div>
             </div>
           )}
+
           {stage === 'done' && (
-            <div className="p-8">
-              <p className="text-xs tracking-[0.16em] text-[#f0c575]">WORKSTATION CLOSED</p>
-              <h1 className="mt-2 text-4xl font-semibold">{correct}/20 classifications</h1>
-              <p className="mt-2 text-[#e7dccb]">Time {formatClock(seconds)}. XP is awarded once, from this first completion.</p>
-              <div className="mt-6 grid gap-3 md:grid-cols-4">
+            <div className="p-5 sm:p-8">
+              <p className="text-xs tracking-[0.16em] text-[#FF9933]">SIM CLOSED</p>
+              <h1 className="mt-2 text-3xl font-semibold sm:text-4xl">{correct}/20</h1>
+              <p className="mt-2 text-sm text-[#e7dccb]">Time {formatClock(seconds)}. XP once from first completion.</p>
+              <div className="mt-6 grid gap-3 sm:grid-cols-2 md:grid-cols-4">
                 {chapterScores.map((item) => (
                   <article key={item.id} className="rounded-xl bg-[#2c211b] p-3 text-sm">
                     <strong>{item.title}</strong>
-                    <p>{item.correct}/5 in this chapter record</p>
+                    <p>{item.correct}/5</p>
                   </article>
                 ))}
               </div>
-              <Link href="/games" className="mt-6 inline-block rounded-full bg-[#f0c575] px-4 py-2 font-semibold text-[#2a2118]">Back to games</Link>
+              <Link href="/academy?tab=practice" className="mt-6 inline-flex rounded-full bg-[#FF9933] px-4 py-3 font-semibold text-[#0b0b0b]">
+                Back to practice
+              </Link>
             </div>
           )}
         </div>

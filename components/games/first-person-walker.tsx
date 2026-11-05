@@ -148,10 +148,43 @@ export function FirstPersonWalker({
     const start = spawnRef.current;
     camera.position.set(start[0], start[1], start[2]);
     camera.rotation.order = 'YXZ';
+    const coarse =
+      typeof window !== 'undefined'
+      && (window.matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window);
+
+    const tryInteract = () => {
+      if (mode.current !== 'walk' || pausedProp.current || suspendedProp.current) return;
+      const x = camera.position.x;
+      const z = camera.position.z;
+      const seat = sitRef.current;
+      if (seat && Math.hypot(x - seat.x, z - seat.z) < seat.radius) {
+        saved.current = { x, y: camera.position.y, z, yaw: yaw.current, pitch: pitch.current };
+        anim.current = { t: 0, from: camera.position.clone(), yaw: yaw.current, pitch: pitch.current, to: seat.seat.clone(), yawTo: seat.yaw, pitchTo: seat.pitch };
+        mode.current = 'sit';
+        if (document.pointerLockElement) document.exitPointerLock();
+        callbacks.current.onPrompt('');
+        return;
+      }
+      for (const point of pointsRef.current) {
+        if (collectedRef.current.includes(point.id)) continue;
+        if (Math.hypot(x - point.x, z - point.z) < point.radius) {
+          callbacks.current.onInteract?.(point.id);
+          break;
+        }
+      }
+    };
+
+    const applyLook = (dx: number, dy: number) => {
+      if (mode.current !== 'walk' || pausedProp.current || suspendedProp.current) return;
+      if (Math.abs(dx) < 0.1 && Math.abs(dy) < 0.1) return;
+      yaw.current -= dx * 0.0022;
+      pitch.current = THREE.MathUtils.clamp(pitch.current - dy * 0.0022, -1.05, 1.05);
+    };
+
     const down = (event: KeyboardEvent) => {
       if (event.repeat) return;
       const typing = event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement;
-      const movement = event.code === 'KeyW' || event.code === 'KeyA' || event.code === 'KeyS' || event.code === 'KeyD' || event.code === 'ArrowUp' || event.code === 'ArrowDown' || event.code === 'ArrowLeft' || event.code === 'ArrowRight' || event.code === 'Escape';
+      const movement = event.code === 'KeyW' || event.code === 'KeyA' || event.code === 'KeyS' || event.code === 'KeyD' || event.code === 'ArrowUp' || event.code === 'ArrowDown' || event.code === 'ArrowLeft' || event.code === 'ArrowRight' || event.code === 'Escape' || event.code === 'KeyE';
       if (!typing && movement) event.preventDefault();
       keys.current[event.code] = true;
       if (event.code === 'Escape') {
@@ -174,41 +207,30 @@ export function FirstPersonWalker({
         }
         return;
       }
-      if (event.code !== 'KeyE' || mode.current !== 'walk' || pausedProp.current || suspendedProp.current || typing) return;
-      const x = camera.position.x;
-      const z = camera.position.z;
-      const seat = sitRef.current;
-      if (seat && Math.hypot(x - seat.x, z - seat.z) < seat.radius) {
-        saved.current = { x, y: camera.position.y, z, yaw: yaw.current, pitch: pitch.current };
-        anim.current = { t: 0, from: camera.position.clone(), yaw: yaw.current, pitch: pitch.current, to: seat.seat.clone(), yawTo: seat.yaw, pitchTo: seat.pitch };
-        mode.current = 'sit';
-        if (document.pointerLockElement) document.exitPointerLock();
-        callbacks.current.onPrompt('');
-        return;
-      }
-      for (const point of pointsRef.current) {
-        if (collectedRef.current.includes(point.id)) continue;
-        if (Math.hypot(x - point.x, z - point.z) < point.radius) {
-          callbacks.current.onInteract?.(point.id);
-          break;
-        }
-      }
+      if (event.code === 'KeyE' && !typing) tryInteract();
     };
     const up = (event: KeyboardEvent) => { keys.current[event.code] = false; };
     const clearKeys = () => { keys.current = {}; };
     const hold = (event: Event) => {
       const detail = (event as CustomEvent<{ code?: string; down?: boolean }>).detail;
       if (!detail?.code) return;
+      const wasDown = !!keys.current[detail.code];
       keys.current[detail.code] = !!detail.down;
+      if (detail.code === 'KeyE' && detail.down && !wasDown) tryInteract();
     };
-    const look = (event: MouseEvent) => {
-      if (document.pointerLockElement !== gl.domElement || mode.current !== 'walk' || pausedProp.current || suspendedProp.current) return;
-      yaw.current -= event.movementX * 0.0022;
-      pitch.current = THREE.MathUtils.clamp(pitch.current - event.movementY * 0.0022, -1.05, 1.05);
+    const lookMouse = (event: MouseEvent) => {
+      if (document.pointerLockElement !== gl.domElement) return;
+      applyLook(event.movementX, event.movementY);
+    };
+    const lookTouch = (event: Event) => {
+      const detail = (event as CustomEvent<{ dx?: number; dy?: number }>).detail;
+      if (detail?.dx == null || detail?.dy == null) return;
+      applyLook(detail.dx, detail.dy);
     };
     const onClick = () => {
+      if (coarse) return;
       if (mode.current === 'walk' && !pausedProp.current && !suspendedProp.current && document.pointerLockElement !== gl.domElement) {
-        gl.domElement.requestPointerLock();
+        void gl.domElement.requestPointerLock();
       }
     };
     window.addEventListener('keydown', down);
@@ -216,7 +238,8 @@ export function FirstPersonWalker({
     window.addEventListener('blur', clearKeys);
     document.addEventListener('visibilitychange', clearKeys);
     window.addEventListener('saferon-hold', hold as EventListener);
-    window.addEventListener('mousemove', look);
+    window.addEventListener('saferon-look', lookTouch as EventListener);
+    window.addEventListener('mousemove', lookMouse);
     gl.domElement.addEventListener('click', onClick);
     return () => {
       window.removeEventListener('keydown', down);
@@ -224,7 +247,8 @@ export function FirstPersonWalker({
       window.removeEventListener('blur', clearKeys);
       document.removeEventListener('visibilitychange', clearKeys);
       window.removeEventListener('saferon-hold', hold as EventListener);
-      window.removeEventListener('mousemove', look);
+      window.removeEventListener('saferon-look', lookTouch as EventListener);
+      window.removeEventListener('mousemove', lookMouse);
       gl.domElement.removeEventListener('click', onClick);
     };
   }, [camera, gl]);

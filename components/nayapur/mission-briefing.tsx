@@ -56,7 +56,7 @@ export function MissionBriefing({
         <div className="mt-8 rounded-xl border border-[#2a2a2a] bg-[#121212] p-4 text-sm text-[#9c968c]">
           <p className="font-semibold text-[#f6f1e8]">How to play</p>
           <ol className="mt-2 list-decimal space-y-1 pl-5">
-            <li>Finish the short movement tutorial.</li>
+            <li>Finish the short movement tutorial (phone: stick + drag to look + Talk).</li>
             <li>Follow the quest beacon to Neighbourhood Uncle (Bijli Bill).</li>
             <li>Complete street talks — then return to Academy courses for certificates.</li>
           </ol>

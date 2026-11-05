@@ -6,6 +6,7 @@ import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { FirstPersonWalker, type WalkBox, type WalkPoint } from '@/components/games/first-person-walker';
 import { OFFICE_MODELS, OfficeProp } from '@/components/games/office-props';
+import { MobileControls, useTouchPlay } from '@/components/nayapur/mobile-controls';
 
 type Solid = { x: number; z: number; w: number; d: number; h?: number; y?: number; color?: string; partition?: boolean; prop?: boolean };
 
@@ -270,6 +271,7 @@ export default function QrFloor({
   onScan: (id: string) => void;
   onRoom: (id: string) => void;
 }) {
+  const touch = useTouchPlay();
   const [paused, setPaused] = useState(false);
   const [prompt, setPrompt] = useState('');
   const [locked, setLocked] = useState(false);
@@ -283,14 +285,25 @@ export default function QrFloor({
     return () => document.removeEventListener('pointerlockchange', sync);
   }, []);
 
+  const scanPoints = useMemo(
+    () =>
+      QR_SCAN.map((point) => ({
+        ...point,
+        prompt: touch ? point.prompt.replace(/Press E/i, 'Tap Scan').replace(/press E/i, 'tap Scan') : point.prompt,
+      })),
+    [touch],
+  );
+
   return (
-    <div ref={poseRef} data-player="qr" className="absolute inset-0 bg-black">
+    <div ref={poseRef} data-player="qr" className="absolute inset-0 touch-none overscroll-none bg-black">
       <Canvas
         shadows={{ type: THREE.PCFShadowMap }}
         camera={{ position: [0, EYE, 11.2], fov: 68 }}
+        style={{ touchAction: 'none' }}
         onCreated={({ gl }) => {
           gl.shadowMap.enabled = true;
           gl.shadowMap.type = THREE.PCFShadowMap;
+          gl.domElement.style.touchAction = 'none';
         }}
       >
         <color attach="background" args={['#10151f']} />
@@ -323,7 +336,7 @@ export default function QrFloor({
           suspended={suspended}
           seated={false}
           collected={done}
-          points={QR_SCAN}
+          points={scanPoints}
           onTogglePause={() => setPaused((current) => !current)}
           onInteract={onScan}
           onPrompt={(text) => {
@@ -345,13 +358,30 @@ export default function QrFloor({
           <Building done={done} />
         </Suspense>
       </Canvas>
-      <p className="pointer-events-none absolute right-4 top-4 text-xs text-[#b7c3d6]">Click to look · WASD · E · Esc</p>
-      {locked && !paused && !suspended && <div className="pointer-events-none absolute left-1/2 top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/80" />}
-      {prompt && !paused && !suspended && <div className="pointer-events-none absolute bottom-8 left-1/2 z-10 -translate-x-1/2 rounded-full bg-black/75 px-4 py-2 text-sm text-white">{prompt}</div>}
-      {!locked && !paused && !suspended && !prompt && <div className="pointer-events-none absolute bottom-8 left-1/2 -translate-x-1/2 rounded-full bg-black/70 px-4 py-2 text-sm text-white">Click the floor to look around</div>}
+      <p className="pointer-events-none absolute right-3 top-3 text-[11px] text-[#b7c3d6] sm:right-4 sm:top-4 sm:text-xs">
+        {touch ? 'Stick · drag look · Scan' : 'Click to look · WASD · E · Esc'}
+      </p>
+      {locked && !paused && !suspended && !touch && <div className="pointer-events-none absolute left-1/2 top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/80" />}
+      {prompt && !paused && !suspended && (
+        <div className={`pointer-events-none absolute left-1/2 z-10 -translate-x-1/2 rounded-full bg-black/75 px-4 py-2 text-center text-sm text-white ${touch ? 'bottom-44' : 'bottom-8'}`}>
+          {prompt}
+        </div>
+      )}
+      {!touch && !locked && !paused && !suspended && !prompt && (
+        <div className="pointer-events-none absolute bottom-8 left-1/2 -translate-x-1/2 rounded-full bg-black/70 px-4 py-2 text-sm text-white">Click the floor to look around</div>
+      )}
+      {!suspended && (
+        <MobileControls
+          visible={!paused}
+          canInteract={!!prompt}
+          lookEnabled={!paused && !suspended}
+          interactLabel="Scan"
+          showRun={false}
+        />
+      )}
       {paused && (
-        <div className="absolute inset-0 grid place-items-center bg-black/55">
-          <button className="rounded-full bg-white px-5 py-2 text-sm font-semibold text-black" onClick={() => setPaused(false)}>Resume</button>
+        <div className="absolute inset-0 z-40 grid place-items-center bg-black/55">
+          <button type="button" className="rounded-full bg-white px-5 py-2 text-sm font-semibold text-black" onClick={() => setPaused(false)}>Resume</button>
         </div>
       )}
     </div>

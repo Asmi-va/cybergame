@@ -56,38 +56,65 @@ export default function RansomwareGame() {
 
   if (done) {
     return (
-      <div className="min-h-screen bg-[#140c0c] px-6 py-16 text-[#f8ecec]">
-        <p className="text-xs tracking-[0.16em] text-[#f0a8a8]">INCIDENT REVIEW</p>
-        <h1 className="mt-3 text-4xl font-semibold">The first minutes are closed</h1>
-        <p className="mt-3">Procedure steps matched: {score}/{STEPS.length}. Nothing on this computer was encrypted, deleted, or changed.</p>
-        <ul className="mt-4 space-y-2 text-sm">{log.map((item) => <li key={item}>{item}</li>)}</ul>
-        <p className="mt-4 max-w-xl text-sm text-[#f0c8c8]">Recognise the note and the renamed files. Follow the card: separate the machine from the network, report on a number you already had, and leave repairs to the security team. Do not pay, and do not run a tool from the note.</p>
-        <Link href="/games" className="mt-6 inline-block rounded-full bg-[#f0a8a8] px-4 py-2 font-semibold text-black">Back to games</Link>
+      <div className="min-h-[100dvh] bg-[#090909] px-4 py-10 text-[#f8ecec]">
+        <div className="mx-auto max-w-md rounded-[1.75rem] border border-[#5a3030] bg-[#140c0c] p-6">
+          <p className="text-xs tracking-[0.16em] text-[#f0a8a8]">INCIDENT REVIEW</p>
+          <h1 className="mt-3 text-3xl font-semibold">First minutes closed</h1>
+          <p className="mt-3 text-sm">Procedure steps matched: {score}/{STEPS.length}. Nothing on this computer was encrypted.</p>
+          <ul className="mt-4 space-y-2 text-sm text-[#f0c8c8]">{log.map((item) => <li key={item}>{item}</li>)}</ul>
+          <Link href="/academy?tab=practice" className="mt-6 inline-flex rounded-full bg-[#f0a8a8] px-4 py-3 font-semibold text-black">
+            Back to practice
+          </Link>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#1a1010] p-4 text-[#f8ecec]">
-      <div className="mx-auto max-w-4xl overflow-hidden rounded-2xl border border-[#5a3030] bg-[#120c0c]">
-        <div className="flex items-center justify-between border-b border-[#5a3030] px-4 py-2 text-sm"><span>Simulated workstation · not your files</span><Link href="/games">Exit</Link></div>
-        <div className="grid gap-4 p-4 md:grid-cols-[1fr_1fr]">
-          <div className="rounded-xl bg-black p-4">
-            <p className="text-xs tracking-[0.14em] text-[#f0a8a8]">RANSOM NOTE · SIMULATED</p>
-            <p className="mt-3 text-sm">Your simulated files now end in .locked. A payment address is printed here and goes nowhere. There is no wallet and no encryption routine in this lesson.</p>
-            <ul className="mt-4 space-y-1 font-mono text-xs text-[#f0c8c8]">{files.map((file) => <li key={file}>{file}.locked</li>)}</ul>
+    <div className="min-h-[100dvh] bg-[#090909] px-3 py-3 text-[#f8ecec] sm:px-4 sm:py-4">
+      <div className="mx-auto max-w-md overflow-hidden rounded-[1.75rem] border border-[#5a3030] bg-[#120c0c] shadow-2xl sm:max-w-4xl sm:rounded-2xl">
+        <div className="flex items-center justify-center bg-[#1a1010] px-4 py-2 sm:hidden">
+          <span className="h-1.5 w-16 rounded-full bg-white/15" />
+        </div>
+        <div className="flex items-center justify-between border-b border-[#5a3030] px-4 py-2 text-xs sm:text-sm">
+          <span>Simulated workstation</span>
+          <Link href="/academy?tab=practice">Exit</Link>
+        </div>
+        <div className="grid gap-4 p-4 sm:grid-cols-2">
+          <div className="rounded-2xl bg-black p-4">
+            <p className="text-[10px] tracking-[0.14em] text-[#f0a8a8]">RANSOM NOTE · SIM</p>
+            <p className="mt-3 text-sm leading-relaxed">Files end in .locked. Payment address goes nowhere. No wallet. No encryption on your real device.</p>
+            <ul className="mt-4 space-y-1 font-mono text-xs text-[#f0c8c8]">
+              {files.map((file) => (
+                <li key={file}>{file}.locked</li>
+              ))}
+            </ul>
           </div>
           <div>
             <p className="text-xs text-[#f0a8a8]">{index + 1}/{STEPS.length}</p>
-            <h1 className="mt-1 text-2xl font-semibold">{step.title}</h1>
+            <h1 className="mt-1 text-xl font-semibold sm:text-2xl">{step.title}</h1>
             <p className="mt-2 text-sm text-[#f0d0d0]">{step.copy}</p>
             <div className="mt-4 grid gap-2">
               {step.choices.map((item) => (
-                <button key={item.id} onClick={() => setPicked(item.id)} className={`rounded-xl border px-3 py-2 text-left text-sm ${picked === item.id ? 'border-[#f0a8a8]' : 'border-white/10'}`}>{item.label}</button>
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setPicked(item.id)}
+                  className={`rounded-xl border px-3 py-3 text-left text-sm ${picked === item.id ? 'border-[#f0a8a8] bg-[#f0a8a8]/10' : 'border-white/10'}`}
+                >
+                  {item.label}
+                </button>
               ))}
             </div>
-            {choice && <p className="mt-3 text-sm text-[#f0c575]">{choice.feedback}</p>}
-            <button disabled={!picked} onClick={commit} className="mt-4 rounded-full bg-[#f0a8a8] px-4 py-2 text-sm font-semibold text-black disabled:opacity-40">Continue</button>
+            {choice ? <p className="mt-3 text-sm text-[#f0c575]">{choice.feedback}</p> : null}
+            <button
+              type="button"
+              disabled={!picked}
+              onClick={commit}
+              className="mt-4 w-full rounded-full bg-[#f0a8a8] px-4 py-3 text-sm font-semibold text-black disabled:opacity-40"
+            >
+              Continue
+            </button>
           </div>
         </div>
       </div>
