@@ -189,7 +189,8 @@ export function MobileControls({
       d: active && x > dead,
       shift: showRun && active && Math.hypot(x, y) > 0.72,
     };
-    const map: Record<string, boolean> = {
+    type HoldKey = 'KeyW' | 'KeyS' | 'KeyA' | 'KeyD' | 'ShiftLeft';
+    const map: Record<HoldKey, boolean> = {
       KeyW: next.w,
       KeyS: next.s,
       KeyA: next.a,
@@ -197,16 +198,16 @@ export function MobileControls({
       ShiftLeft: next.shift,
     };
     const prev = codes.current;
-    const prevMap = {
+    const prevMap: Record<HoldKey, boolean> = {
       KeyW: prev.w,
       KeyS: prev.s,
       KeyA: prev.a,
       KeyD: prev.d,
       ShiftLeft: prev.shift,
     };
-    for (const [code, down] of Object.entries(map)) {
-      if (prevMap[code] !== down) hold(code, down);
-    }
+    (Object.keys(map) as HoldKey[]).forEach((code) => {
+      if (prevMap[code] !== map[code]) hold(code, map[code]);
+    });
     codes.current = next;
   }, [showRun]);
 

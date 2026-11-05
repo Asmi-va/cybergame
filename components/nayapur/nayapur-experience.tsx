@@ -61,7 +61,7 @@ export default function NayapurExperience() {
   const playing = onboarding === 'play';
   const suspended = onboarding === 'opening' || onboarding === 'briefing' || !!side || !!missionUi || !!bijliStage;
   const guideTarget = getGuideTarget(missions);
-  const controlsLive = (playing || inTutorial) && !paused && !side && !missionUi && onboarding !== 'opening' && onboarding !== 'briefing';
+  const controlsLive = (playing || inTutorial) && !paused && !side && !missionUi;
 
   useEffect(() => {
     const sync = () => setLocked(document.pointerLockElement !== null);
