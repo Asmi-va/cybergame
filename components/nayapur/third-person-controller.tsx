@@ -36,6 +36,7 @@ export function ThirdPersonController({
   onTogglePause,
   onMove,
   onMotion,
+  onLooked,
 }: {
   spawn?: [number, number, number];
   colliders: Collider[];
@@ -48,6 +49,7 @@ export function ThirdPersonController({
   onTogglePause: () => void;
   onMove?: (x: number, z: number, yaw: number) => void;
   onMotion?: (state: { moving: boolean; running: boolean }) => void;
+  onLooked?: () => void;
 }) {
   const { camera, gl } = useThree();
   const group = useRef<THREE.Group>(null);
@@ -60,7 +62,7 @@ export function ThirdPersonController({
   const collectedRef = useRef(collected);
   const pausedRef = useRef(paused);
   const suspendedRef = useRef(!!suspended);
-  const callbacks = useRef({ onPrompt, onInteract, onTogglePause, onMove, onMotion });
+  const callbacks = useRef({ onPrompt, onInteract, onTogglePause, onMove, onMotion, onLooked });
   const lastMove = useRef({ x: spawn[0], z: spawn[2], yaw: 0 });
   const [moving, setMoving] = useState(false);
   const [running, setRunning] = useState(false);
@@ -70,10 +72,34 @@ export function ThirdPersonController({
   collectedRef.current = collected;
   pausedRef.current = paused;
   suspendedRef.current = !!suspended;
-  callbacks.current = { onPrompt, onInteract, onTogglePause, onMove, onMotion };
+  callbacks.current = { onPrompt, onInteract, onTogglePause, onMove, onMotion, onLooked };
 
   useEffect(() => {
     if (group.current) group.current.position.set(spawn[0], spawn[1], spawn[2]);
+    const coarse =
+      typeof window !== 'undefined'
+      && (window.matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window);
+
+    const tryInteract = () => {
+      if (pausedRef.current || suspendedRef.current || !group.current) return;
+      const { x, z } = group.current.position;
+      for (const point of pointsRef.current) {
+        if (collectedRef.current.includes(point.id)) continue;
+        if (Math.hypot(x - point.x, z - point.z) < point.radius) {
+          callbacks.current.onInteract(point.id);
+          break;
+        }
+      }
+    };
+
+    const applyLook = (dx: number, dy: number) => {
+      if (pausedRef.current || suspendedRef.current) return;
+      if (Math.abs(dx) < 0.1 && Math.abs(dy) < 0.1) return;
+      yaw.current -= dx * 0.0024;
+      pitch.current = THREE.MathUtils.clamp(pitch.current + dy * 0.0018, 0.08, 0.85);
+      callbacks.current.onLooked?.();
+    };
+
     const down = (event: KeyboardEvent) => {
       if (event.repeat) return;
       const typing = event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement;
@@ -85,45 +111,45 @@ export function ThirdPersonController({
         if (document.pointerLockElement) document.exitPointerLock();
         return;
       }
-      if (event.code === 'KeyE' && !typing && !pausedRef.current && !suspendedRef.current && group.current) {
-        const { x, z } = group.current.position;
-        for (const point of pointsRef.current) {
-          if (collectedRef.current.includes(point.id)) continue;
-          if (Math.hypot(x - point.x, z - point.z) < point.radius) {
-            callbacks.current.onInteract(point.id);
-            break;
-          }
-        }
-      }
+      if (event.code === 'KeyE' && !typing) tryInteract();
     };
     const up = (event: KeyboardEvent) => { keys.current[event.code] = false; };
     const hold = (event: Event) => {
       const detail = (event as CustomEvent<{ code?: string; down?: boolean }>).detail;
       if (!detail?.code) return;
+      const wasDown = !!keys.current[detail.code];
       keys.current[detail.code] = !!detail.down;
+      if (detail.code === 'KeyE' && detail.down && !wasDown) tryInteract();
     };
-    const look = (event: MouseEvent) => {
+    const lookMouse = (event: MouseEvent) => {
       if (document.pointerLockElement !== gl.domElement || pausedRef.current || suspendedRef.current) return;
-      yaw.current -= event.movementX * 0.0024;
-      pitch.current = THREE.MathUtils.clamp(pitch.current + event.movementY * 0.0018, 0.08, 0.85);
+      applyLook(event.movementX, event.movementY);
+    };
+    const lookTouch = (event: Event) => {
+      const detail = (event as CustomEvent<{ dx?: number; dy?: number }>).detail;
+      if (detail?.dx == null || detail?.dy == null) return;
+      applyLook(detail.dx, detail.dy);
     };
     const onClick = () => {
+      if (coarse) return;
       if (!pausedRef.current && !suspendedRef.current && document.pointerLockElement !== gl.domElement) {
-        gl.domElement.requestPointerLock();
+        void gl.domElement.requestPointerLock();
       }
     };
     const clear = () => { keys.current = {}; };
     window.addEventListener('keydown', down);
     window.addEventListener('keyup', up);
     window.addEventListener('saferon-hold', hold as EventListener);
-    window.addEventListener('mousemove', look);
+    window.addEventListener('saferon-look', lookTouch as EventListener);
+    window.addEventListener('mousemove', lookMouse);
     window.addEventListener('blur', clear);
     gl.domElement.addEventListener('click', onClick);
     return () => {
       window.removeEventListener('keydown', down);
       window.removeEventListener('keyup', up);
       window.removeEventListener('saferon-hold', hold as EventListener);
-      window.removeEventListener('mousemove', look);
+      window.removeEventListener('saferon-look', lookTouch as EventListener);
+      window.removeEventListener('mousemove', lookMouse);
       window.removeEventListener('blur', clear);
       gl.domElement.removeEventListener('click', onClick);
     };

@@ -34,17 +34,6 @@ const CODES: Code[] = [
   { id: 'h2', room: 'hall', label: 'Floor sign', url: 'https://badge-reset.northwind-access.example/', secure: true, verdict: 'report', why: 'Badge resets do not live on a lookalike access domain stuck to the floor.' },
 ];
 
-const MOVE_KEYS = [
-  { label: 'up', code: 'ArrowUp' },
-  { label: 'left', code: 'ArrowLeft' },
-  { label: 'down', code: 'ArrowDown' },
-  { label: 'right', code: 'ArrowRight' },
-];
-
-function holdKey(code: string, down: boolean) {
-  window.dispatchEvent(new KeyboardEvent(down ? 'keydown' : 'keyup', { code, bubbles: true }));
-}
-
 export default function QrHuntGame() {
   const completeGame = usePlatform((state) => state.completeGame);
   const [roomId, setRoomId] = useState(ROOMS[0].id);
@@ -71,7 +60,7 @@ export default function QrHuntGame() {
   }
 
   return (
-    <div className="relative h-screen overflow-hidden bg-[#10140f] text-[#f3f6ef]">
+    <div className="relative h-[100dvh] overflow-hidden bg-[#10140f] text-[#f3f6ef]">
       <QrFloor
         done={Object.keys(done)}
         suspended={!!active || finished}
@@ -83,12 +72,13 @@ export default function QrHuntGame() {
         }}
         onRoom={setRoomId}
       />
-      <aside className="absolute left-4 top-4 z-20 w-56 rounded-2xl bg-[#0c121a]/85 p-3 text-sm">
-        <Link href="/games" className="text-sm text-[#b7e0b2]">Leave the floor</Link>
-        <h1 className="mt-3 text-2xl font-semibold">QR Hunt</h1>
-        <p className="mt-1 text-sm text-[#c9d4c4]">{solved} recorded · {roomsDone}/6 rooms finished</p>
-        <p className="mt-2 text-xs text-[#c9d4c4]">{room.name}. {room.blurb} Walk with WASD or the arrows. Scan when you are close.</p>
-        <div className="mt-4 space-y-2">
+      <aside className="absolute left-3 top-3 z-20 max-w-[min(100%-1.5rem,14rem)] rounded-2xl bg-[#0c121a]/90 p-3 text-sm backdrop-blur sm:left-4 sm:top-4 sm:w-56 sm:max-w-none">
+        <Link href="/academy?tab=practice" className="text-sm text-[#b7e0b2]">Leave floor</Link>
+        <h1 className="mt-2 text-xl font-semibold sm:mt-3 sm:text-2xl">QR Hunt</h1>
+        <p className="mt-1 text-xs text-[#c9d4c4] sm:text-sm">{solved} recorded · {roomsDone}/6 rooms</p>
+        <p className="mt-2 hidden text-xs text-[#c9d4c4] sm:block">{room.name}. {room.blurb}</p>
+        <p className="mt-2 text-[11px] text-[#9fb39a] sm:hidden">{room.name} · walk & scan</p>
+        <div className="mt-3 hidden space-y-2 sm:block">
           {ROOMS.map((item) => (
             <div key={item.id} className={`rounded-xl px-3 py-2 ${item.id === roomId ? 'bg-[#245c32]' : 'bg-white/5'}`}>
               {item.name}
@@ -97,37 +87,61 @@ export default function QrHuntGame() {
           ))}
         </div>
       </aside>
-      <div className="absolute bottom-4 left-4 z-20 flex gap-2 md:hidden">
-        {MOVE_KEYS.map((direction) => (
-          <button
-            key={direction.code}
-            className="rounded-full bg-white/10 px-3 py-2 text-sm"
-            onPointerDown={(event) => { event.preventDefault(); holdKey(direction.code, true); }}
-            onPointerUp={() => holdKey(direction.code, false)}
-            onPointerLeave={() => holdKey(direction.code, false)}
-            onPointerCancel={() => holdKey(direction.code, false)}
-          >
-            {direction.label}
-          </button>
-        ))}
-      </div>
+
       {active && (
-        <div className="fixed inset-0 z-40 grid place-items-center bg-black/70 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-[#172117] p-5">
-            <p className="text-xs tracking-[0.14em] text-[#b7e0b2]">SCANNER · {active.label}</p>
-            <p className="mt-3 break-all font-mono text-sm">{active.url}</p>
-            <p className="mt-2 text-sm text-[#c9d4c4]">{active.secure ? 'The destination shows a lock.' : 'The destination is not encrypted.'} This code is fictional and is not opened for real.</p>
-            <div className="mt-4 grid gap-2">
-              {(['open', 'ignore', 'report'] as const).map((option) => (
-                <button key={option} onClick={() => setChoice(option)} className={`rounded-xl border px-3 py-2 text-left capitalize ${choice === option ? 'border-[#b7e0b2]' : 'border-white/10'}`}>{option}</button>
-              ))}
+        <div className="fixed inset-0 z-40 grid place-items-end bg-black/70 p-3 sm:place-items-center sm:p-4">
+          <div className="w-full max-w-md overflow-hidden rounded-[1.75rem] border border-white/10 bg-[#0b0f0c] shadow-2xl">
+            <div className="flex items-center justify-center bg-[#121812] px-4 py-2">
+              <span className="h-1.5 w-16 rounded-full bg-white/20" />
             </div>
-            {choice && <p className="mt-3 text-sm">{choice === active.verdict ? active.why : `The safer call is to ${active.verdict}. ${active.why}`}</p>}
-            <button disabled={!choice} onClick={commit} className="mt-4 rounded-full bg-[#d6f5a8] px-4 py-2 text-sm font-semibold text-black disabled:opacity-40">Record decision</button>
+            <div className="p-5">
+              <p className="text-[10px] tracking-[0.16em] text-[#b7e0b2]">PHONE SCANNER · SIM</p>
+              <p className="mt-2 text-lg font-semibold">{active.label}</p>
+              <p className="mt-3 break-all rounded-xl bg-black/50 px-3 py-2 font-mono text-xs text-[#d7eccf]">{active.url}</p>
+              <p className="mt-2 text-sm text-[#c9d4c4]">
+                {active.secure ? 'Destination shows a lock.' : 'Destination is not encrypted.'} Fiction only — nothing opens for real.
+              </p>
+              <div className="mt-4 grid gap-2">
+                {(['open', 'ignore', 'report'] as const).map((verdict) => (
+                  <button
+                    key={verdict}
+                    type="button"
+                    onClick={() => setChoice(verdict)}
+                    className={`rounded-xl border px-4 py-3 text-left text-sm capitalize ${choice === verdict ? 'border-[#FF9933] bg-[#FF9933]/15' : 'border-white/10'}`}
+                  >
+                    {verdict}
+                  </button>
+                ))}
+              </div>
+              {choice ? (
+                <p className="mt-3 text-sm text-[#d7eccf]">
+                  {choice === active.verdict ? active.why : `Safer call: ${active.verdict}. ${active.why}`}
+                </p>
+              ) : null}
+              <button
+                type="button"
+                disabled={!choice}
+                onClick={commit}
+                className="mt-4 w-full rounded-full bg-[#FF9933] px-4 py-3 text-sm font-semibold text-[#0b0b0b] disabled:opacity-40"
+              >
+                Record decision
+              </button>
+            </div>
           </div>
         </div>
       )}
-      {finished && <div className="fixed inset-0 z-40 grid place-items-center bg-black/70 p-4"><div className="rounded-2xl bg-[#172117] p-6"><h2 className="text-2xl font-semibold">Twelve codes reviewed</h2><p className="mt-2">{solved} matched the safer decision. Rooms completed: {roomsDone}/6.</p><Link href="/games" className="mt-4 inline-block rounded-full bg-[#d6f5a8] px-4 py-2 font-semibold text-black">Back to games</Link></div></div>}
+
+      {finished && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/80 p-4">
+          <div className="w-full max-w-md rounded-3xl bg-[#172117] p-6 text-center">
+            <p className="text-xs tracking-[0.16em] text-[#b7e0b2]">FLOOR CLEARED</p>
+            <h2 className="mt-2 text-3xl font-semibold">{solved}/12 codes</h2>
+            <Link href="/academy?tab=practice" className="mt-6 inline-block rounded-full bg-[#FF9933] px-5 py-2 text-sm font-semibold text-[#0b0b0b]">
+              Back to practice
+            </Link>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

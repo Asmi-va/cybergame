@@ -48,14 +48,16 @@ export function QuestGuidePanel({
   playerZ,
   yaw,
   visible,
+  compact = false,
 }: {
   target: GuideTarget | null;
   playerX: number;
   playerZ: number;
   yaw: number;
   visible: boolean;
+  compact?: boolean;
 }) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(!compact);
 
   const guide = useMemo(() => {
     if (!target) return null;
@@ -71,9 +73,13 @@ export function QuestGuidePanel({
 
   if (!visible) return null;
 
+  const shell = compact
+    ? 'absolute left-3 right-3 top-[5.5rem] z-20 sm:left-4 sm:right-auto sm:top-auto sm:bottom-4 sm:w-[min(100%-2rem,20rem)]'
+    : 'absolute bottom-4 left-4 z-20 w-[min(100%-2rem,20rem)]';
+
   if (!target) {
     return (
-      <div className="pointer-events-none absolute bottom-4 left-4 max-w-xs rounded-2xl bg-[#14110e]/88 p-4">
+      <div className={`pointer-events-none ${shell} max-w-xs rounded-2xl bg-[#14110e]/88 p-3 sm:p-4`}>
         <p className="text-[10px] tracking-[0.16em] text-[#8fd4a0]">GUIDE</p>
         <p className="mt-1 text-sm text-[#efe7da]">All street cases clear. Explore the lane — more of Nayapur opens next.</p>
       </div>
@@ -81,8 +87,8 @@ export function QuestGuidePanel({
   }
 
   return (
-    <div className="absolute bottom-4 left-4 z-20 w-[min(100%-2rem,20rem)]">
-      <div className="rounded-2xl border border-white/10 bg-[#14110e]/92 p-4 shadow-xl backdrop-blur">
+    <div className={shell}>
+      <div className="rounded-2xl border border-white/10 bg-[#14110e]/92 p-3 shadow-xl backdrop-blur sm:p-4">
         <div className="flex items-start justify-between gap-2">
           <div>
             <p className="text-[10px] tracking-[0.16em] text-[#f0c27a]">GUIDE · {target.step}</p>
@@ -116,7 +122,7 @@ export function QuestGuidePanel({
               </div>
               <div className="min-w-0">
                 <p className="text-sm font-medium text-[#f3efe7]">
-                  {guide?.near ? 'You are here — press E' : guide?.label}
+                  {guide?.near ? (compact ? 'You are here — tap Talk' : 'You are here — press E') : guide?.label}
                 </p>
                 <p className="text-xs text-[#b9a890]">
                   {guide ? `${guide.dist.toFixed(1)} m away` : '—'}
@@ -124,7 +130,7 @@ export function QuestGuidePanel({
               </div>
             </div>
 
-            <p className="mt-3 text-xs leading-relaxed text-[#cfc3b2]">{target.tip}</p>
+            {!compact ? <p className="mt-3 text-xs leading-relaxed text-[#cfc3b2]">{target.tip}</p> : null}
           </>
         )}
       </div>

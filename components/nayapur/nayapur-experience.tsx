@@ -12,6 +12,7 @@ import { QuestBeacon, QuestGuidePanel } from '@/components/nayapur/quest-guide';
 import { ResidentialStreet, STREET_COLLIDERS, STREET_POINTS } from '@/components/nayapur/residential-street';
 import { PARCEL_BEATS, PAYMENT_BEATS, StreetMission } from '@/components/nayapur/street-mission';
 import { ThirdPersonController } from '@/components/nayapur/third-person-controller';
+import { MobileControls, useNayapurMobile } from '@/components/nayapur/mobile-controls';
 import { TutorialOverlay } from '@/components/nayapur/tutorial-overlay';
 import { useImmersive } from '@/components/platform/site-shell';
 import { playNayapurCue } from '@/lib/nayapur/audio';
@@ -42,12 +43,14 @@ export default function NayapurExperience() {
   const missions = useNayapur((s) => s.missions);
   const startMission = useNayapur((s) => s.startMission);
 
+  const mobile = useNayapurMobile();
   const [paused, setPaused] = useState(false);
   const [prompt, setPrompt] = useState('');
   const [side, setSide] = useState<SideId>(null);
   const [missionUi, setMissionUi] = useState<ActiveMissionUi>(null);
   const [bijliStage, setBijliStage] = useState<BijliStage | null>(null);
   const [locked, setLocked] = useState(false);
+  const [looked, setLooked] = useState(false);
   const [moving, setMoving] = useState(false);
   const [running, setRunning] = useState(false);
   const [pose, setPose] = useState({ x: SPAWN[0], z: SPAWN[2], yaw: 0 });
@@ -58,6 +61,7 @@ export default function NayapurExperience() {
   const playing = onboarding === 'play';
   const suspended = onboarding === 'opening' || onboarding === 'briefing' || !!side || !!missionUi || !!bijliStage;
   const guideTarget = getGuideTarget(missions);
+  const controlsLive = (playing || inTutorial) && !paused && !side && !missionUi && onboarding !== 'opening' && onboarding !== 'briefing';
 
   useEffect(() => {
     const sync = () => setLocked(document.pointerLockElement !== null);
@@ -79,15 +83,23 @@ export default function NayapurExperience() {
   }
 
   return (
-    <div ref={poseRef} data-player="nayapur" data-x="0.00" data-z="14.50" className="relative h-screen overflow-hidden bg-[#1a1510] text-[#f3efe7]">
+    <div
+      ref={poseRef}
+      data-player="nayapur"
+      data-x="0.00"
+      data-z="14.50"
+      className="relative h-[100dvh] overflow-hidden overscroll-none bg-[#1a1510] text-[#f3efe7] touch-none select-none"
+    >
       <Canvas
         shadows={{ type: THREE.PCFShadowMap }}
         camera={{ position: [0, 3.2, 13], fov: 55 }}
+        style={{ touchAction: 'none' }}
         onCreated={({ gl }) => {
           gl.shadowMap.enabled = true;
           gl.shadowMap.type = THREE.PCFShadowMap;
           gl.toneMapping = THREE.ACESFilmicToneMapping;
           gl.toneMappingExposure = 1.08;
+          gl.domElement.style.touchAction = 'none';
         }}
       >
         <color attach="background" args={['#8fa6bc']} />
@@ -167,38 +179,43 @@ export default function NayapurExperience() {
               setMoving(state.moving);
               setRunning(state.running);
             }}
+            onLooked={() => setLooked(true)}
           />
         </Suspense>
       </Canvas>
 
-      <div className="pointer-events-none absolute left-4 top-4 max-w-sm rounded-2xl bg-[#14110e]/82 p-4">
+      <div className="pointer-events-none absolute left-3 top-3 max-w-[min(100%-6.5rem,20rem)] rounded-2xl bg-[#14110e]/82 p-3 sm:left-4 sm:top-4 sm:max-w-sm sm:p-4">
         <p className="text-[10px] tracking-[0.16em] text-[#f0c27a]">NAYAPUR · CITY LANE</p>
-        <h1 className="mt-1 text-xl font-semibold">Operation Real Life</h1>
+        <h1 className="mt-1 text-lg font-semibold sm:text-xl">Operation Real Life</h1>
         <p className="mt-1 text-xs text-[#d9cfc0]">Trust {trust} · Stars {stars}</p>
-        <p className="mt-2 text-sm text-[#d9cfc0]">
+        <p className="mt-2 hidden text-sm text-[#d9cfc0] sm:block">
           {guideTarget
             ? `Next: ${guideTarget.meet} · ${guideTarget.step}`
             : 'Chapter 1 street cases clear. Explore freely.'}
         </p>
       </div>
 
-      <div className="pointer-events-none absolute right-4 top-4 text-right text-xs text-[#e8dfd2]">
-        <p>Click to look · WASD · Shift run · E · Esc</p>
+      <div className="pointer-events-none absolute right-3 top-3 text-right text-[11px] text-[#e8dfd2] sm:right-4 sm:top-4 sm:text-xs">
+        <p className="hidden sm:block">Click to look · WASD · Shift run · E · Esc</p>
+        <p className="sm:hidden">Stick move · drag look · Talk</p>
         <div className="pointer-events-auto mt-2 flex justify-end gap-3">
           <button
+            type="button"
             onClick={() => setSoundEnabled(!soundEnabled)}
             className="text-[#f0c27a]"
           >
             Sound {soundEnabled ? 'on' : 'off'}
           </button>
-          <Link href="/games" className="text-[#f0c27a]">Leave Nayapur</Link>
+          <Link href="/academy?tab=story" className="text-[#f0c27a]">Leave</Link>
         </div>
       </div>
 
       {prompt && !paused && !side && !missionUi && (playing || inTutorial) && (
-        <div className="pointer-events-none absolute bottom-28 left-1/2 z-20 -translate-x-1/2 rounded-full bg-black/70 px-4 py-2 text-sm">{prompt}</div>
+        <div className={`pointer-events-none absolute left-1/2 z-20 -translate-x-1/2 rounded-full bg-black/70 px-4 py-2 text-center text-sm ${mobile ? 'bottom-44' : 'bottom-28'}`}>
+          {prompt}
+        </div>
       )}
-      {!locked && !paused && !side && !missionUi && playing && !prompt && (
+      {!mobile && !locked && !paused && !side && !missionUi && playing && !prompt && (
         <div className="pointer-events-none absolute bottom-28 left-1/2 -translate-x-1/2 rounded-full bg-black/65 px-4 py-2 text-sm">Click the street to look around</div>
       )}
 
@@ -208,6 +225,13 @@ export default function NayapurExperience() {
         playerZ={pose.z}
         yaw={pose.yaw}
         visible={(playing || inTutorial) && !paused && !side && !missionUi}
+        compact={mobile}
+      />
+
+      <MobileControls
+        visible={controlsLive}
+        canInteract={!!prompt}
+        lookEnabled={!paused && !side && !missionUi}
       />
 
       {onboarding === 'opening' && (
@@ -220,10 +244,11 @@ export default function NayapurExperience() {
 
       {inTutorial && (
         <TutorialOverlay
-          locked={locked}
+          locked={locked || looked}
           moving={moving}
           running={running}
           nearPrompt={!!prompt}
+          mobile={mobile}
           onDone={finishTutorial}
         />
       )}

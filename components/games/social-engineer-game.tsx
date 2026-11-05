@@ -96,25 +96,67 @@ export default function SocialEngineerGame() {
   }
 
   if (done) {
-    return <div className="min-h-screen bg-[#1b140f] px-6 py-16 text-[#f6efe6]"><p className="text-xs tracking-[0.16em] text-[#f0c575]">16:45 · DAY CLOSED</p><h1 className="mt-3 text-4xl font-semibold">The workday is filed</h1><p className="mt-3">Decision quality {score}/{REQUESTS.length * 2}. Best answers were the proportionate ones, including the ordinary yes.</p><Link href="/games" className="mt-6 inline-block rounded-full bg-[#f0c575] px-4 py-2 font-semibold text-black">Back to games</Link></div>;
+    return (
+      <div className="min-h-[100dvh] bg-[#090909] px-4 py-10 text-[#f6efe6]">
+        <div className="mx-auto max-w-md rounded-[1.75rem] border border-white/10 bg-[#1b140f] p-6">
+          <p className="text-xs tracking-[0.16em] text-[#FF9933]">16:45 · DAY CLOSED</p>
+          <h1 className="mt-3 text-3xl font-semibold">Workday filed</h1>
+          <p className="mt-3 text-sm text-[#e7dccb]">Decision quality {score}/{REQUESTS.length * 2}.</p>
+          <Link href="/academy?tab=practice" className="mt-6 inline-flex rounded-full bg-[#FF9933] px-4 py-3 font-semibold text-[#0b0b0b]">
+            Back to practice
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-[#1b140f] text-[#f6efe6]">
-      <div className="mx-auto max-w-3xl px-4 py-6">
-        <div className="flex items-center justify-between text-sm text-[#d9cbb8]"><Link href="/games">Leave the day</Link><span>{request.time}</span><span>{index + 1}/{REQUESTS.length}</span></div>
-        <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/10"><div className="h-full bg-[#f0c575]" style={{ width: `${(index / REQUESTS.length) * 100}%` }} /></div>
-        <p className="mt-6 text-xs tracking-[0.16em] text-[#f0c575]">{request.place.toUpperCase()}</p>
-        <h1 className="mt-2 text-3xl font-semibold">{request.person}</h1>
-        <p className="mt-4 text-[#e7dccb]">{request.context}</p>
-        <p className="mt-3 text-lg">{request.ask}</p>
-        <div className="mt-5 grid gap-2">
-          {request.options.map((option) => (
-            <button key={option.id} onClick={() => setPicked(option.id)} className={`rounded-2xl border px-4 py-3 text-left ${picked === option.id ? 'border-[#f0c575] bg-[#2a2118]' : 'border-white/10'}`}>{option.label}</button>
-          ))}
+    <div className="min-h-[100dvh] bg-[#090909] px-3 py-3 text-[#f6efe6] sm:px-4 sm:py-6">
+      <div className="mx-auto max-w-md sm:max-w-3xl">
+        <div className="mb-3 flex items-center justify-between text-xs text-[#d9cbb8] sm:text-sm">
+          <Link href="/academy?tab=practice">Leave day</Link>
+          <span>{request.time}</span>
+          <span>{index + 1}/{REQUESTS.length}</span>
         </div>
-        {choice && <p className="mt-4 text-sm text-[#f0c575]">{choice.feedback}</p>}
-        <button disabled={!picked} onClick={commit} className="mt-4 rounded-full bg-[#f0c575] px-4 py-2 text-sm font-semibold text-black disabled:opacity-40">Continue the day</button>
+        <div className="mb-4 h-1.5 overflow-hidden rounded-full bg-white/10">
+          <div className="h-full bg-[#FF9933]" style={{ width: `${(index / REQUESTS.length) * 100}%` }} />
+        </div>
+
+        <div className="overflow-hidden rounded-[1.75rem] border border-white/10 bg-[#1b140f] shadow-2xl">
+          <div className="flex items-center justify-center bg-[#241c16] px-4 py-2 sm:hidden">
+            <span className="h-1.5 w-16 rounded-full bg-white/15" />
+          </div>
+          <div className="border-b border-white/10 px-4 py-3">
+            <p className="text-[10px] tracking-[0.16em] text-[#FF9933]">WORKDAY ALERT · SIM</p>
+            <p className="mt-1 text-xs text-[#b9a890]">{request.place}</p>
+          </div>
+          <div className="space-y-4 p-4 sm:p-6">
+            <h1 className="text-2xl font-semibold sm:text-3xl">{request.person}</h1>
+            <p className="text-sm leading-relaxed text-[#e7dccb]">{request.context}</p>
+            <p className="rounded-xl bg-black/30 px-4 py-3 text-base">{request.ask}</p>
+            <div className="grid gap-2">
+              {request.options.map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  onClick={() => setPicked(option.id)}
+                  className={`rounded-2xl border px-4 py-3 text-left text-sm ${picked === option.id ? 'border-[#FF9933] bg-[#FF9933]/10' : 'border-white/10'}`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+            {choice ? <p className="text-sm text-[#FF9933]">{choice.feedback}</p> : null}
+            <button
+              type="button"
+              disabled={!picked}
+              onClick={commit}
+              className="w-full rounded-full bg-[#FF9933] px-4 py-3 text-sm font-semibold text-[#0b0b0b] disabled:opacity-40"
+            >
+              Continue the day
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

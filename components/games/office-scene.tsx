@@ -6,6 +6,7 @@ import { Suspense, useEffect, useMemo, useRef, useState, type RefObject } from '
 import * as THREE from 'three';
 import { FirstPersonWalker } from '@/components/games/first-person-walker';
 import { OFFICE_MODELS, OfficeProp } from '@/components/games/office-props';
+import { MobileControls, useTouchPlay } from '@/components/nayapur/mobile-controls';
 
 type Solid = { x: number; z: number; w: number; d: number; h?: number; y?: number; color?: string; partition?: boolean; prop?: boolean };
 type Box = { minX: number; maxX: number; minZ: number; maxZ: number };
@@ -225,6 +226,7 @@ export default function OfficeScene({
   onLocate: () => void;
   objectives: Objective[];
 }) {
+  const touch = useTouchPlay();
   const [paused, setPaused] = useState(false);
   const [prompt, setPrompt] = useState('');
   const [locked, setLocked] = useState(false);
@@ -242,13 +244,15 @@ export default function OfficeScene({
   }, [seated]);
 
   return (
-    <div ref={poseRef} data-player="office" className="absolute inset-0 bg-black">
+    <div ref={poseRef} data-player="office" className="absolute inset-0 touch-none overscroll-none bg-black">
       <Canvas
         shadows={{ type: THREE.PCFShadowMap }}
         camera={{ position: [0, EYE, 7.05], fov: 68 }}
+        style={{ touchAction: 'none' }}
         onCreated={({ gl }) => {
           gl.shadowMap.enabled = true;
           gl.shadowMap.type = THREE.PCFShadowMap;
+          gl.domElement.style.touchAction = 'none';
         }}
       >
         <color attach="background" args={['#10151f']} />
@@ -280,11 +284,19 @@ export default function OfficeScene({
           paused={paused}
           seated={seated}
           collected={collected}
-          sit={{ x: WORKSTATION.x, z: WORKSTATION.z, radius: 1.2, prompt: 'Press E to use workstation', seat: SEAT, yaw: 0, pitch: -0.18 }}
+          sit={{
+            x: WORKSTATION.x,
+            z: WORKSTATION.z,
+            radius: 1.2,
+            prompt: touch ? 'Tap Use to sit at the workstation' : 'Press E to use workstation',
+            seat: SEAT,
+            yaw: 0,
+            pitch: -0.18,
+          }}
           points={[
-            { ...PAPER, radius: 0.85 },
-            { ...BOARD, radius: 0.85 },
-            { ...USB, radius: 0.85 },
+            { ...PAPER, radius: 0.85, prompt: touch ? 'Tap Use · paper clue' : PAPER.prompt },
+            { ...BOARD, radius: 0.85, prompt: touch ? 'Tap Use · notice board' : BOARD.prompt },
+            { ...USB, radius: 0.85, prompt: touch ? 'Tap Use · USB stick' : USB.prompt },
           ]}
           enteredZ={5.2}
           onEntered={onEntered}
@@ -307,16 +319,31 @@ export default function OfficeScene({
       </Canvas>
       {!seated && (
         <>
-          <div className="pointer-events-none absolute left-4 top-4 max-w-xs rounded-2xl bg-[#0c121a]/85 p-3 text-xs text-[#d5deea]">
-            <p className="text-[10px] tracking-[0.14em] text-[#93c5fd]">FLOOR</p>
+          <div className="pointer-events-none absolute left-3 top-3 max-w-[min(100%-1.5rem,16rem)] rounded-2xl bg-[#0c121a]/85 p-3 text-xs text-[#d5deea] sm:left-4 sm:top-4 sm:max-w-xs">
+            <p className="text-[10px] tracking-[0.14em] text-[#93c5fd]">FLOOR · SIM</p>
             <ul className="mt-2 space-y-1">
               {objectives.map((item) => <li key={item.label} className={item.done ? 'text-[#86efac]' : ''}>{item.done ? '✓' : '○'} {item.label}</li>)}
             </ul>
           </div>
-          <p className="pointer-events-none absolute right-4 top-4 text-xs text-[#b7c3d6]">Click to look · WASD · E · Esc</p>
-          {locked && !paused && <div className="pointer-events-none absolute left-1/2 top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/80" />}
-          {prompt && !paused && <div className="pointer-events-none absolute bottom-8 left-1/2 -translate-x-1/2 rounded-full bg-black/75 px-4 py-2 text-sm text-white">{prompt}</div>}
-          {!locked && !paused && !prompt && <div className="pointer-events-none absolute bottom-8 left-1/2 -translate-x-1/2 rounded-full bg-black/70 px-4 py-2 text-sm text-white">Click the building to look around</div>}
+          <p className="pointer-events-none absolute right-3 top-3 text-[11px] text-[#b7c3d6] sm:right-4 sm:top-4 sm:text-xs">
+            {touch ? 'Stick · drag look · Use' : 'Click to look · WASD · E · Esc'}
+          </p>
+          {locked && !paused && !touch && <div className="pointer-events-none absolute left-1/2 top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/80" />}
+          {prompt && !paused && (
+            <div className={`pointer-events-none absolute left-1/2 z-10 -translate-x-1/2 rounded-full bg-black/75 px-4 py-2 text-center text-sm text-white ${touch ? 'bottom-44' : 'bottom-8'}`}>
+              {prompt}
+            </div>
+          )}
+          {!touch && !locked && !paused && !prompt && (
+            <div className="pointer-events-none absolute bottom-8 left-1/2 -translate-x-1/2 rounded-full bg-black/70 px-4 py-2 text-sm text-white">Click the building to look around</div>
+          )}
+          <MobileControls
+            visible={!paused}
+            canInteract={!!prompt}
+            lookEnabled={!paused}
+            interactLabel="Use"
+            showRun={false}
+          />
         </>
       )}
       {paused && !seated && (
