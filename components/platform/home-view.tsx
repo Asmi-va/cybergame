@@ -26,11 +26,11 @@ export default function HomeView() {
           <Link href="/academy" className="sr-btn sr-btn-primary">
             Enter the academy
           </Link>
-          <Link href="/academy?tab=path" className="sr-btn sr-btn-secondary">
-            Follow the learning path
+          <Link href="/nayapur" className="sr-btn sr-btn-secondary">
+            Play Nayapur (PC & phone)
           </Link>
-          <Link href="/nayapur" className="sr-btn sr-btn-ghost">
-            Play the story game
+          <Link href="/academy?tab=path" className="sr-btn sr-btn-ghost">
+            Follow the learning path
           </Link>
         </div>
         <div className="sr-stat-row">

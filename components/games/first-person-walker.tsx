@@ -3,6 +3,7 @@
 import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useRef, type RefObject } from 'react';
 import * as THREE from 'three';
+import { isPrimaryTouchDevice } from '@/lib/platform/touch';
 
 export type WalkBox = { minX: number; maxX: number; minZ: number; maxZ: number };
 export type WalkPoint = { id: string; x: number; z: number; radius: number; prompt: string };
@@ -148,9 +149,8 @@ export function FirstPersonWalker({
     const start = spawnRef.current;
     camera.position.set(start[0], start[1], start[2]);
     camera.rotation.order = 'YXZ';
-    const coarse =
-      typeof window !== 'undefined'
-      && (window.matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window);
+    const touchPrimary = isPrimaryTouchDevice();
+    const dragLook = { active: false, x: 0, y: 0 };
 
     const tryInteract = () => {
       if (mode.current !== 'walk' || pausedProp.current || suspendedProp.current) return;
@@ -219,36 +219,58 @@ export function FirstPersonWalker({
       if (detail.code === 'KeyE' && detail.down && !wasDown) tryInteract();
     };
     const lookMouse = (event: MouseEvent) => {
-      if (document.pointerLockElement !== gl.domElement) return;
-      applyLook(event.movementX, event.movementY);
+      if (document.pointerLockElement === gl.domElement) {
+        applyLook(event.movementX, event.movementY);
+        return;
+      }
+      if (dragLook.active && !touchPrimary) {
+        applyLook(event.movementX || event.clientX - dragLook.x, event.movementY || event.clientY - dragLook.y);
+        dragLook.x = event.clientX;
+        dragLook.y = event.clientY;
+      }
     };
     const lookTouch = (event: Event) => {
       const detail = (event as CustomEvent<{ dx?: number; dy?: number }>).detail;
       if (detail?.dx == null || detail?.dy == null) return;
       applyLook(detail.dx, detail.dy);
     };
+    const onPointerDown = (event: PointerEvent) => {
+      if (touchPrimary || event.pointerType === 'touch') return;
+      if (mode.current !== 'walk' || pausedProp.current || suspendedProp.current) return;
+      if (document.pointerLockElement === gl.domElement) return;
+      dragLook.active = true;
+      dragLook.x = event.clientX;
+      dragLook.y = event.clientY;
+    };
+    const onPointerUp = () => {
+      dragLook.active = false;
+    };
     const onClick = () => {
-      if (coarse) return;
+      if (touchPrimary) return;
       if (mode.current === 'walk' && !pausedProp.current && !suspendedProp.current && document.pointerLockElement !== gl.domElement) {
-        void gl.domElement.requestPointerLock();
+        void gl.domElement.requestPointerLock().catch(() => undefined);
       }
     };
     window.addEventListener('keydown', down);
     window.addEventListener('keyup', up);
     window.addEventListener('blur', clearKeys);
+    window.addEventListener('mouseup', onPointerUp);
     document.addEventListener('visibilitychange', clearKeys);
     window.addEventListener('saferon-hold', hold as EventListener);
     window.addEventListener('saferon-look', lookTouch as EventListener);
     window.addEventListener('mousemove', lookMouse);
+    gl.domElement.addEventListener('pointerdown', onPointerDown);
     gl.domElement.addEventListener('click', onClick);
     return () => {
       window.removeEventListener('keydown', down);
       window.removeEventListener('keyup', up);
       window.removeEventListener('blur', clearKeys);
+      window.removeEventListener('mouseup', onPointerUp);
       document.removeEventListener('visibilitychange', clearKeys);
       window.removeEventListener('saferon-hold', hold as EventListener);
       window.removeEventListener('saferon-look', lookTouch as EventListener);
       window.removeEventListener('mousemove', lookMouse);
+      gl.domElement.removeEventListener('pointerdown', onPointerDown);
       gl.domElement.removeEventListener('click', onClick);
     };
   }, [camera, gl]);

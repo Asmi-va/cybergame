@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { isPrimaryTouchDevice } from '@/lib/platform/touch';
 
 function hold(code: string, down: boolean) {
   window.dispatchEvent(new CustomEvent('saferon-hold', { detail: { code, down } }));
@@ -13,16 +14,15 @@ function look(dx: number, dy: number) {
 function useIsCoarsePointer() {
   const [coarse, setCoarse] = useState(false);
   useEffect(() => {
-    const sync = () => {
-      setCoarse(
-        window.matchMedia('(pointer: coarse)').matches
-          || window.matchMedia('(max-width: 900px)').matches
-          || 'ontouchstart' in window,
-      );
-    };
+    const sync = () => setCoarse(isPrimaryTouchDevice());
     sync();
+    const mq = window.matchMedia('(hover: none) and (pointer: coarse)');
+    mq.addEventListener?.('change', sync);
     window.addEventListener('resize', sync);
-    return () => window.removeEventListener('resize', sync);
+    return () => {
+      mq.removeEventListener?.('change', sync);
+      window.removeEventListener('resize', sync);
+    };
   }, []);
   return coarse;
 }
@@ -100,12 +100,14 @@ function LookPad({ enabled }: { enabled: boolean }) {
       className="absolute inset-y-16 right-0 z-10 w-[48%] touch-none"
       aria-label="Look around"
       onPointerDown={(event) => {
+        // Ignore mouse — desktop uses click-to-look / pointer lock instead.
+        if (event.pointerType === 'mouse') return;
         event.preventDefault();
         event.currentTarget.setPointerCapture(event.pointerId);
         last.current = { x: event.clientX, y: event.clientY };
       }}
       onPointerMove={(event) => {
-        if (!last.current) return;
+        if (!last.current || event.pointerType === 'mouse') return;
         event.preventDefault();
         const dx = event.clientX - last.current.x;
         const dy = event.clientY - last.current.y;

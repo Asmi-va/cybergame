@@ -128,7 +128,7 @@ function AcademyInner() {
           <p className="sr-eyebrow">Story game · learn from the street</p>
           <h2 className="mt-3 text-3xl text-[var(--sr-ink)]">Nayapur</h2>
           <p className="mt-3 max-w-2xl text-[var(--sr-ink-muted)]">
-            This is a story game — you learn by helping neighbours. New players see the full mission board first, then a short tutorial, then the lane.
+            This is a story game — you learn by helping neighbours. Works on PC (click to look · WASD · E) and phone (stick · drag look · Talk). New players see the mission board first, then a short tutorial.
           </p>
           <ol className="mt-6 space-y-3">
             {MISSIONS.map((mission, index) => (
@@ -143,7 +143,7 @@ function AcademyInner() {
           </ol>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link href="/nayapur" className="sr-btn sr-btn-primary">
-              Enter story game
+              Play Nayapur now
             </Link>
             <Link href="/courses/india-payment-scams" className="sr-btn sr-btn-ghost">
               Pair with payment scams course

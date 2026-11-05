@@ -19,7 +19,7 @@ export function useImmersive(active: boolean) {
 const LINKS = [
   { href: '/', label: 'Home' },
   { href: '/academy', label: 'Academy' },
-  { href: '/nayapur', label: 'Story game' },
+  { href: '/nayapur', label: 'Nayapur' },
   { href: '/achievements', label: 'Progress' },
   { href: '/profile', label: 'Profile' },
   { href: '/privacy', label: 'Privacy' },

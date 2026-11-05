@@ -6,7 +6,7 @@ import { playNayapurCue } from '@/lib/nayapur/audio';
 type StepId = 'look' | 'move' | 'run' | 'interact';
 
 const DESKTOP: { id: StepId; title: string; hint: string; keys: string[] }[] = [
-  { id: 'look', title: 'Look around', hint: 'Click the street once, then move the mouse.', keys: ['Click', 'Mouse'] },
+  { id: 'look', title: 'Look around', hint: 'Click the street (or click and drag) to look with the mouse.', keys: ['Click', 'Mouse'] },
   { id: 'move', title: 'Walk the lane', hint: 'Use W A S D (or arrow keys) to walk.', keys: ['W', 'A', 'S', 'D'] },
   { id: 'run', title: 'Sprint', hint: 'Hold Shift while walking to run.', keys: ['Shift'] },
   { id: 'interact', title: 'Talk / inspect', hint: 'Walk near a glowing prompt and press E.', keys: ['E'] },

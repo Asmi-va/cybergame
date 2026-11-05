@@ -4,6 +4,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { AnimatedPlayer } from '@/components/nayapur/animated-player';
+import { isPrimaryTouchDevice } from '@/lib/platform/touch';
 
 export type Collider = { minX: number; maxX: number; minZ: number; maxZ: number };
 export type InteractPoint = { id: string; x: number; z: number; radius: number; prompt: string };
@@ -76,9 +77,8 @@ export function ThirdPersonController({
 
   useEffect(() => {
     if (group.current) group.current.position.set(spawn[0], spawn[1], spawn[2]);
-    const coarse =
-      typeof window !== 'undefined'
-      && (window.matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window);
+    const touchPrimary = isPrimaryTouchDevice();
+    const dragLook = { active: false, x: 0, y: 0 };
 
     const tryInteract = () => {
       if (pausedRef.current || suspendedRef.current || !group.current) return;
@@ -122,27 +122,53 @@ export function ThirdPersonController({
       if (detail.code === 'KeyE' && detail.down && !wasDown) tryInteract();
     };
     const lookMouse = (event: MouseEvent) => {
-      if (document.pointerLockElement !== gl.domElement || pausedRef.current || suspendedRef.current) return;
-      applyLook(event.movementX, event.movementY);
+      if (pausedRef.current || suspendedRef.current) return;
+      if (document.pointerLockElement === gl.domElement) {
+        applyLook(event.movementX, event.movementY);
+        return;
+      }
+      if (dragLook.active && !touchPrimary) {
+        applyLook(event.movementX || event.clientX - dragLook.x, event.movementY || event.clientY - dragLook.y);
+        dragLook.x = event.clientX;
+        dragLook.y = event.clientY;
+      }
     };
     const lookTouch = (event: Event) => {
       const detail = (event as CustomEvent<{ dx?: number; dy?: number }>).detail;
       if (detail?.dx == null || detail?.dy == null) return;
       applyLook(detail.dx, detail.dy);
     };
+    const onPointerDown = (event: PointerEvent) => {
+      if (touchPrimary || event.pointerType === 'touch') return;
+      if (pausedRef.current || suspendedRef.current) return;
+      if (document.pointerLockElement === gl.domElement) return;
+      dragLook.active = true;
+      dragLook.x = event.clientX;
+      dragLook.y = event.clientY;
+    };
+    const onPointerUp = () => {
+      dragLook.active = false;
+    };
     const onClick = () => {
-      if (coarse) return;
+      if (touchPrimary) return;
       if (!pausedRef.current && !suspendedRef.current && document.pointerLockElement !== gl.domElement) {
-        void gl.domElement.requestPointerLock();
+        void gl.domElement.requestPointerLock().catch(() => {
+          // Pointer lock blocked — click-drag look still works.
+        });
       }
     };
-    const clear = () => { keys.current = {}; };
+    const clear = () => {
+      keys.current = {};
+      dragLook.active = false;
+    };
     window.addEventListener('keydown', down);
     window.addEventListener('keyup', up);
     window.addEventListener('saferon-hold', hold as EventListener);
     window.addEventListener('saferon-look', lookTouch as EventListener);
     window.addEventListener('mousemove', lookMouse);
+    window.addEventListener('mouseup', onPointerUp);
     window.addEventListener('blur', clear);
+    gl.domElement.addEventListener('pointerdown', onPointerDown);
     gl.domElement.addEventListener('click', onClick);
     return () => {
       window.removeEventListener('keydown', down);
@@ -150,7 +176,9 @@ export function ThirdPersonController({
       window.removeEventListener('saferon-hold', hold as EventListener);
       window.removeEventListener('saferon-look', lookTouch as EventListener);
       window.removeEventListener('mousemove', lookMouse);
+      window.removeEventListener('mouseup', onPointerUp);
       window.removeEventListener('blur', clear);
+      gl.domElement.removeEventListener('pointerdown', onPointerDown);
       gl.domElement.removeEventListener('click', onClick);
     };
   }, [gl, spawn]);

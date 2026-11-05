@@ -196,8 +196,7 @@ export default function NayapurExperience() {
       </div>
 
       <div className="pointer-events-none absolute right-3 top-3 text-right text-[11px] text-[#e8dfd2] sm:right-4 sm:top-4 sm:text-xs">
-        <p className="hidden sm:block">Click to look · WASD · Shift run · E · Esc</p>
-        <p className="sm:hidden">Stick move · drag look · Talk</p>
+        <p>{mobile ? 'Stick · drag look · Talk' : 'Click / drag to look · WASD · Shift · E · Esc'}</p>
         <div className="pointer-events-auto mt-2 flex justify-end gap-3">
           <button
             type="button"
@@ -215,8 +214,10 @@ export default function NayapurExperience() {
           {prompt}
         </div>
       )}
-      {!mobile && !locked && !paused && !side && !missionUi && playing && !prompt && (
-        <div className="pointer-events-none absolute bottom-28 left-1/2 -translate-x-1/2 rounded-full bg-black/65 px-4 py-2 text-sm">Click the street to look around</div>
+      {!mobile && !locked && !looked && !paused && !side && !missionUi && (playing || inTutorial) && !prompt && (
+        <div className="pointer-events-none absolute bottom-28 left-1/2 -translate-x-1/2 rounded-full bg-black/65 px-4 py-2 text-sm">
+          Click the street to look · WASD to walk · E to talk
+        </div>
       )}
 
       <QuestGuidePanel
